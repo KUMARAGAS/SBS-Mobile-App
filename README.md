@@ -1,39 +1,56 @@
-# SBS Field Service — Mobile App
+# SBS Field Service — platform monorepo
 
-Expo SDK 57 + React Native technician app for **SBS.COM OFFICE SOLUTIONS (PVT) LTD**.
+Platform for **SBS.COM OFFICE SOLUTIONS (PVT) LTD**: the technician mobile app, the ops admin console, and
+the API they share. **npm workspaces** (PLAN.md D15) — one repo, three deployables, one shared contract.
 
-**Status: blank Expo project.** The `create-expo-app` tutorial screens were stripped on 21 Sep 2026 —
-the template's own `reset-project` script was run in *delete* mode, so `src/` now contains only a blank
-`src/app`. No application code has been written yet.
+The full product plan (scope, data model, architecture, decisions, risks) lives in [`PLAN.md`](./PLAN.md);
+**§8.5 is the authoritative layout** this skeleton follows.
 
-Removed with them: `src/app/explore.tsx` (the Explore tab), every demo component (`hint-row`, `web-badge`,
-`animated-icon*`, `app-tabs*`, `themed-text`/`themed-view`, `ui/collapsible`, `external-link`),
-`src/constants/theme.ts`, `src/hooks/*`, `src/global.css`, the Expo/React logo and tutorial images
-(`assets/images/expo-badge*.png`, `react-logo*`, `logo-glow.png`, `tutorial-web.png`, `tabIcons/*`), and
-`scripts/reset-project.js` together with its `reset-project` npm script.
+## Layout
 
-The full product plan (scope, data model, architecture, decisions, risks) lives in [`PLAN.md`](./PLAN.md).
-
-## Decided stack (not yet installed)
-Expo SDK 57 · Expo Router · Redux Toolkit + RTK Query · Clerk (`@clerk/expo`) ·
-Node + Express + TypeScript API · Neon Postgres · ImageKit · Sentry · EAS Build / Update.
+| Path | What it is | Status |
+|---|---|---|
+| `apps/mobile` | Expo SDK 57 + Expo Router technician app → EAS Build/Update | blank Expo app (tutorial demo screens stripped) — **runs today** |
+| `apps/api` | Node 22 + Express 5 + TypeScript, 4 layers (`api → application → domain → infrastructure`) → Railway/Render | **folders only** |
+| `apps/admin` | Next.js 16.3 client-rendered ops console (D13) → Vercel | **folders only** |
+| `packages/shared` | Zod schemas + inferred TS types + enums + constants — the cross-client contract (D15/D18) | **folders only** |
+| `packages/config` | shared tsconfig / eslint / prettier presets | presets in place |
+| `.github/workflows` | CI: typecheck, test, migrate, deploy | empty |
 
 ## Get started
 
 ```bash
-npm install
-npx expo start
+npm install          # from the repo root — installs every workspace into one hoisted tree
+npm run dev:mobile   # Expo dev server for apps/mobile
+npm run dev:api      # apps/api dev server — install its dependencies first (see apps/api/README.md)
+npm run dev:admin    # apps/admin dev server — install its dependencies first (see apps/admin/README.md)
+npm run typecheck    # tsc --noEmit across every workspace that defines the script
 ```
 
-- Use **`npx expo install <package>`** — never `npm install <package>` — so versions stay SDK-compatible.
-- Before finishing any change, run `npx tsc --noEmit` and `npx expo lint`.
-- Native code is generated (CNG): never hand-edit `ios/` or `android/`; configure via `app.json` and config plugins.
-- Routes live in `src/app/`; every file there is a screen. Non-route code belongs outside `src/app/`.
+## Conventions
 
-## Pending
+- Run **`npm install` at the repo root** — not inside a workspace — so npm hoists a single dependency tree.
+- Inside `apps/mobile`, add packages with **`npx expo install <pkg>`** (never `npm install <pkg>`) so versions
+  stay SDK-compatible.
+- Native code is generated (CNG): never hand-edit `ios/`/`android/`; configure native behaviour in
+  `app.json`/`app.config.ts` and config plugins.
+- Mobile routes live in `apps/mobile/src/app/`; every file there is a screen. Non-route code (components,
+  store, hooks, lib) stays outside that folder.
+- API layer rules are non-negotiable — see `apps/api/README.md` and PLAN.md §8.5.
+- Before calling any change done: `npm run typecheck` and `npm run lint`.
 
-1. This app is planned to sit at `apps/mobile` in the monorepo described in `PLAN.md` §8.5 — it is still at the repo root.
-2. App identity in `app.json` is still the template placeholder (`Mobileapp`) and needs SBS naming + bundle IDs.
-   `assets/images/*` (icon, splash, favicon, Android adaptive icons) and `assets/expo.icon/` are still
-   Expo-branded template art and need to be replaced with SBS assets before any build.
-3. `LICENSE` is the Expo template's MIT licence and should be replaced or removed for a commercial client project.
+## Pending (decisions and setup — deliberately not taken silently)
+
+1. **C5 — ORM:** Drizzle 0.45.3 (D2) vs the Prisma tree written into §8.5. Blocks `apps/api/src/infrastructure/db.ts`.
+2. **C6 — identity:** Clerk (D4/D7) vs the self-managed login in the §8.5 tree. Blocks `apps/api/src/api/auth.ts`.
+3. **C9 — folder spelling:** this skeleton uses `domain/` (the spelling PLAN.md recommends). To match the
+   original spec literally: `git mv apps/api/src/domain apps/api/src/domin`.
+4. **No dependencies installed** for `apps/api`, `apps/admin` or `packages/shared` yet — versions get pinned at
+   implementation time (PLAN.md §8.2); the unresolved C5/C6 choices are exactly what those pins depend on.
+5. `apps/mobile/app.json` has not been converted to `app.config.ts` yet (§8.5 expects `app.config.ts` for EAS
+   channels, runtimeVersion, permissions, plugins).
+6. App identity in `apps/mobile/app.json` is still the template placeholder (`Mobileapp`) and the icon/splash
+   art is still Expo-branded; `LICENSE` is still the Expo template's MIT licence.
+7. **ESLint is not configured yet** — `packages/config/eslint` holds the shared preset, but no `eslint`
+   dependency is installed, so `npx expo lint` would prompt to install it.
+

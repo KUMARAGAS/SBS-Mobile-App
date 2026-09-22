@@ -4,12 +4,19 @@
 > This file currently holds everything captured during the co-founder interview: business context,
 > locked decisions, assumptions, a draft data model and architecture, cost/version facts, and the
 > open questions that are still unanswered.
-> It is deliberately **NOT yet a final implementation plan** — see **Part 10 (Next Steps)** for the
+> It is deliberately **NOT yet a final implementation plan** — see **§19 (Next Steps)** for the
 > remaining interview batches. The implementation plan will be appended once the open questions close.
 >
-> **Last updated:** 21 September 2026
-> **Repo state:** greenfield — `/run/media/amila/New Volume1/SBS/Mobileapp` was empty at kickoff.
-> **No scaffolding performed** (per explicit instruction). No git repo, no dependencies, no config yet.
+> **Last updated:** 21 September 2026 (discovery capture + decoupled-architecture revision; no code written)
+> **REVISION (21 Sep 2026):** the architecture was changed to a **decoupled** design at the client's
+> request — standalone **Node.js + Express.js + TypeScript** API, with **Redux Toolkit + RTK Query**
+> as the state/API layer in **both** clients. See **D1, D13–D18** and **§8** (including the new
+> **§8.5 Repository and folder structure**).
+> **Repo state:** the directory **was empty at kickoff** (verified by this session at 20:26). A default
+> **Expo SDK 57 scaffold** then appeared in it at 21:36–21:45 on 21 Sep 2026 — **not created by this
+> planning session** — see **§0.1 Workspace reality check**.
+> **This session performed no scaffolding:** no git init, no dependencies added, no accounts created, no
+> configuration written. The only file this session wrote is `PLAN.md`.
 
 ---
 
@@ -18,19 +25,71 @@
 | Item | Value |
 |---|---|
 | Project | SBS Field Service App (technician mobile app + web admin panel) |
+| Architecture | **Decoupled**: Express/Node/TS API + Expo RN app + Next.js admin, both clients on RTK/RTK Query (D1, D13–D18) |
 | Client / business | SBS.COM Office Solutions (Pvt) Ltd, Sri Lanka |
 | Current phase | Discovery / requirements interview |
+| Repo state | **Default Expo SDK 57 scaffold present** (external action, 21 Sep 21:36 — not by this session) + `node_modules` (485 MB); **no git repo**; see §0.1 |
 | Phase gate | Spec summary → assumptions → risks → **then** implementation plan |
 | Interview batches done | Batch 1 (platform/tenancy/scope), Batch 2 (auth/roles/backend/AI/dispatch) |
 | Batches outstanding | Batch 3 (reports, cost, release, observability, QA, migration, legal/ownership) + Batch 4 (future-proofing, optional) |
-| Unresolved conflicts | 4 flagged, 3 resolved, see §18 |
-| Labeled assumptions | 12+ (see §16) — created mostly by wholesale "I agree with your recommendation" answers on fact-based questions |
+| Unresolved conflicts | **9 flagged, 3 resolved** — C5–C9 are new (ORM, identity, DTO ownership, `api/auth.ts` semantics, `domin/` spelling): see §8.5 and §17 |
+| Labeled assumptions | **31** (A1–A31, see §16) — created by wholesale "I agree with your recommendation" answers on fact-based questions, plus the architecture revision |
 
 ### How to use this file
 - **§§1–15** are the working spec: business context, scope, decisions, model, architecture, non-functional.
 - **§16** lists every assumption. **Anything in §16 is a guess** until the client confirms it.
 - **§19** lists what must happen before the implementation plan is credible.
 - When the interview closes, append **Part B: Implementation Plan** (phases, milestones, task breakdown).
+
+### 0.1 Workspace reality check (verified 21 Sep 2026 at 20:26 and 21:55, then re-checked later the same session)
+
+The directory **was empty when this interview began** (verified 20:26). Between 21:36 and 21:45 — while
+this document was being written — a **default `create-expo-app` scaffold** and an installed `node_modules`
+appeared. **This planning session did not create them.** The only file this session wrote is `PLAN.md`.
+
+| What exists | Detail |
+|---|---|
+| Scaffold origin | Default `create-expo-app@latest` template — **untouched starter** (tutorial routes + demo components) |
+| Expo SDK | **57.0.24** (expo-router 57.0.22) — matches decision **D12** (SDK 57 stable) |
+| React / React Native | React **19.2.3**, React Native **0.86.3** |
+| Routing | `main: expo-router/entry`, file-based routes under `src/app/` |
+| TypeScript | **6.0.3**, `strict: true`, path alias `@/*` → `./src/*` |
+| Experiment flags | `typedRoutes: true`, `reactCompiler: true` |
+| App identity | `app.json` name/slug `Mobileapp`, scheme `mobileapp` — **placeholder branding** |
+| Template leftovers | `src/app/index.tsx`, `src/app/explore.tsx`, demo components (`animated-icon`, `app-tabs`, `web-badge`, `collapsible`, `themed-*`), Expo/React logos, `scripts/reset-project.js`, tutorial `README.md` |
+| Licensing | **`LICENSE` is the template's MIT license** — must be replaced or removed for a client/commercial project |
+| Agent instruction files | **`AGENTS.md`** + **`CLAUDE.md`** (which imports AGENTS.md) appeared after the 21:55 check. Expo-oriented conventions: `npx expo install` for dependencies, Expo Router routes in `src/app/`, EAS for build/submit/update, CNG (never hand-edit `ios/`/`android/`), and versioned-docs lookup rather than memory. **Reviewed and consistent with this plan** (D12, §9.1 dev-build requirement, §8.5 layout) |
+| Version control | **No git repo initialised** |
+| Installed packages | `node_modules` present (485 MB, 363 packages) |
+| Toolchain present | Node **v22.22.1**, npm **10.9.9**, Python 3.14.4, perl 5.40 |
+
+**Resolved after this check (22 Sep 2026):** the tutorial starter was stripped — `src/app/explore.tsx`, every
+demo component (`animated-icon*`, `app-tabs*`, `hint-row`, `web-badge`, `themed-text`/`themed-view`,
+`ui/collapsible`, `external-link`), `src/constants/theme.ts`, `src/hooks/*`, `src/global.css`, the Expo/React
+logo art and `scripts/reset-project.js` (plus its `reset-project` npm script) are gone, leaving only a blank
+`src/app`. That is this table's option 1 with `git init` first: the repo now has an initial commit
+(`b475726`). **Current status lives in `README.md`.** Still outstanding: the template `LICENSE`, the
+placeholder `app.json` identity, and the Expo-branded icon/splash art (README → Pending). Later the same day
+the repo was restructured into the **npm-workspaces monorepo of §8.5** — `apps/mobile` (the moved Expo app),
+`apps/api`, `apps/admin`, `packages/shared`, `packages/config` — structure only, no application code.
+
+**Already useful for this plan:** `expo-web-browser` (Clerk hosted auth) and `react-native-gesture-handler`
+(Stream Video peer dependency) are already present in the template.
+
+**Required by this plan but not yet installed:** `@clerk/expo`, `expo-secure-store`, `expo-auth-session`,
+`expo-crypto`, `@sentry/react-native`, `expo-updates`, `expo-notifications`, `expo-image-picker` or
+`expo-camera`, `expo-location`, offline storage (`expo-sqlite`), and (v1.1)
+`@stream-io/video-react-native-sdk`.
+
+**Decision needed (not taken unilaterally):**
+
+1. **Keep** the scaffold (recommended), strip it to a blank app via `npm run reset-project`, then rename the
+   app identity fields for SBS branding.
+2. **Remove** the scaffold and start clean.
+3. Leave it untouched until Part B is approved.
+
+**Recommendation: option 1 — executed only after the implementation plan is approved**, with `git init`
+and an initial commit as the very first step, since nothing is under version control today.
 
 ---
 
@@ -154,7 +213,7 @@ This asymmetry is why the web admin panel is v1-critical.
 
 ---
 
-## 5. Locked decisions (L1–L9 + Batch 2 design choices)
+## 5. Locked decisions (L1–L9 + technical decisions D1–D18)
 
 | # | Decision | Rationale / trade-off accepted |
 |---|---|---|
@@ -167,10 +226,10 @@ This asymmetry is why the web admin panel is v1-critical.
 | **L7** | **Video calls + AI assistant → v1.1** | Highest engineering cost, lowest v1 value. Note: Stream service cost is negligible at this scale (§8) |
 | **L8** | **Offline = retry queue + local draft**, not full offline-first | Fast to build, feels responsive; accepted risk: dead-zone clock-out is delayed (mitigated by device-timestamp capture at action time) |
 | **L9** | Office-scoped visibility for staff, island-wide for HO admins, cross-branch assignment allowed with audit log | Matches how integrators actually work; prevents lateral data leakage |
-| **D1** | Backend: **single Next.js 16.3 monolith on Vercel** (admin panel + API route handlers in one repo) | Smallest team, fastest path, one auth model, two deploys avoided |
+| **D1** | **DECOUPLED (revised)**: the backend is a standalone **Node.js + Express.js + TypeScript** service (`apps/api`) exposing a REST API. No business logic in the frontends. | Decouples release cadence (the API can deploy without shipping an app build), allows a plain long-running Node process (transactions, cron, report/PDF generation) that a serverless frontend framework handles poorly, and keeps **one API for two clients**. Cost accepted: three deployables and explicit API contracts → see D15/D17 and risk R21 |
 | **D2** | ORM: **Drizzle ORM 0.45.3 stable** (pin ≥ 0.45.3 — 0.45.2 carried a SQL-injection fix); not the 1.0 RC | Lean, SQL-shaped; v1 RC migration is a known future task |
-| **D3** | API style: **REST-ish JSON + Zod validation** (no tRPC/GraphQL) | Native client ergonomics; tRPC is awkward outside Next.js RSC |
-| **D4** | Mobile→API auth: **Clerk session token (short-lived JWT) verified server-side on every request** | No long-lived API keys on devices |
+| **D3** | API style: **REST + JSON, versioned under `/v1`, validated with Zod** (no tRPC/GraphQL) | REST is the common denominator for a decoupled API consumed by RTK Query on two clients. Zod schemas in `packages/shared` are the single source of record shapes (D15/D18) |
+| **D4** | Client→API auth: **Clerk session token (short-lived JWT) sent as `Authorization: Bearer` and verified per request in Express middleware** via `@clerk/express` (`clerkMiddleware()` + `getAuth(req)`) | No long-lived API keys on devices. A 401 is handled centrally in the RTK Query `baseQuery` (refresh via Clerk, retry once) — never a silent per-screen failure |
 | **D5** | Neon: **pooled/HTTP driver**, **branching** for dev/staging, **pgvector enabled from day one** | Branching = safe environments; pgvector = home for AI retrieval with no new vendor |
 | **D6** | **Business logic lives server-side only** — especially warranty/entitlement maths | If entitlement logic lives on the device, technicians can fake warranty status |
 | **D7** | Provisioning: **admin-created employees + invite-link binding to a one-time token**, public sign-up disabled | Avoids the Apple "Hide My Email" and mismatched-email onboarding failures |
@@ -179,6 +238,12 @@ This asymmetry is why the web admin panel is v1-critical.
 | **D10** | Photos: **client-side compression (~200–400 KB) before ImageKit upload**; upload on Wi-Fi or explicit consent | Sri Lankan mobile data is metered and expensive for staff |
 | **D11** | Distribution: **internal** (TestFlight + Play internal track) for v1 | No store review delays or public privacy-policy exposure while stabilising |
 | **D12** | Expo **SDK 57 stable** (58 is beta) with **EAS Build + dev client from day one** | Native Apple/Google sign-in requires a dev build anyway (not Expo Go), so Stream later is a config job, not a pipeline rebuild |
+| **D13** | Web admin frontend stays **Next.js 16.3.3 but as a *client-rendered* consumer of the Express API** — no route handlers, no server-side data fetching, no RSC data layer | Keeps the already-chosen framework and file-based routing while removing the monolith coupling. Alternative considered: Vite + React Router SPA (lighter, but a framework swap that was not requested) — open question §17.15 |
+| **D14** | **Redux Toolkit 2.12.0 + RTK Query in BOTH clients** (Expo app **and** admin panel). RTK Query owns *all* server state/caching; RTK slices own session, UI, drafts and the outbox. **No ad-hoc `useEffect`+`fetch`, no per-screen axios instance, no bespoke cache.** | One caching/invalidation model across two apps, generated hooks, and typed endpoints from a shared contract. Cost: both apps carry a store, and contributors must follow RTK conventions (a convention lint rule is advisable) |
+| **D15** | **Monorepo** (npm workspaces) — `apps/api`, `apps/mobile`, `apps/admin`, `packages/shared` (Zod schemas + TS types + constants), `packages/config` (tsconfig/eslint presets) | Decoupling two clients from one API without a shared contract is how APIs silently drift. Trade-off: monorepo tooling overhead and stricter CI discipline |
+| **D16** | Offline/queue: a **custom RTK Query `baseQuery` wrapper** that captures failed *mutations* into a persisted `outbox` slice and replays them with **idempotency keys**; `extractRehydrationInfo` + `redux-persist` persist the RTK Query cache on mobile. Queries retry; mutations queue. | Implements L8 with one library instead of a bespoke sync engine. Redux documents the caveat that persisting an api slice can serve **stale** data, and recommends it mainly for native apps with no browser cache — so the persisted cache is read-through with a **short `keepUnusedDataFor`**, and attendance is always re-validated server-side |
+| **D17** | API hosting: a **long-running container** — **Railway** (Hobby $5/mo minimum usage incl. $5 credits) or **Render** (Hobby workspace $0 + compute, e.g. **$7/mo 512 MB** or **$25/mo 2 GB**) — **not serverless functions**, because pooling, cron and report generation need a persistent process | Predictable cost/behaviour for a Node service; Neon stays pooled. Trade-off: one more service to monitor → health checks, restart policy and uptime alerting required (risk R22) |
+| **D18** | API contract: **OpenAPI 3 spec generated from the Zod schemas**, consumed as **shared TS types (required in v1)** and optionally as `@rtk-query/codegen-openapi` generated hooks (v1.1 convenience) | Prevents the classic decoupled-architecture failure: frontend types diverging from the API. Codegen is not a v1 dependency |
 
 ---
 
@@ -266,6 +331,7 @@ bottleneck — treat it as a capability, not a guarantee.
 | 6 | Stuck jobs: open > N days with no activity | HO Ops | on-screen + CSV |
 
 Deferred: PDF rendering and scheduled email/WhatsApp digests (v1.1).
+
 ---
 
 ## 7. Draft data model
@@ -317,35 +383,50 @@ Identifiers are UUIDs (or NanoIDs where a short human-readable reference is usef
   scheduled maintenance job.
 - Clerk holds identity; Postgres holds the *employment* record. They are joined by `clerk_user_id`,
   and the employment record is authoritative for role and office.
+
 ---
 
-## 8. Architecture, stack and integrations
+## 8. Architecture, stack, integrations and repository structure
 
-### 8.1 Shape
+### 8.1 Shape (decoupled: two clients, one API)
 
 ```
-  Technician (Android/iOS)            Coordinator / In-charge / Owner
-  Expo SDK 57 + React Native          Browser
-  Expo Router, dev client             Next.js 16.3 (App Router)
-        |                                   |
-        |  Clerk session JWT (Bearer)       |  Clerk session cookie
-        v                                   v
-  +------------------------------------------------------+
-  |  Next.js 16.3.3 route handlers  (REST + Zod)         |
-  |  - RBAC + org/office scoping middleware              |
-  |  - business logic: entitlements, SLA, derived        |
-  |    attendance, idempotency, audit log               |
-  +------------------------------------------------------+
-     |            |             |            |
-     v            v             v            v
-  Neon           ImageKit      Sentry      Stream (v1.1)
-  Postgres       media         errors      Video/Audio
-  (Drizzle,      CDN           perf        + FCM/APNs
-   pgvector)                           ringing push (v1.1)
+         TECHNICIAN                         COORDINATOR / IN-CHARGE / OWNER
+  Expo SDK 57 + React Native              Next.js 16.3.3 admin
+  Redux Toolkit store                     (client-rendered, RTK Query)
+   + RTK Query (all server state)         Redux Toolkit store
+   + outbox slice (offline writes)         + RTK Query (all server state)
+        |                                              |
+        |  Authorization: Bearer <Clerk JWT>           |  Authorization: Bearer <Clerk JWT>
+        v                                              v
+  +--------------------------------------------------------------------+
+  |           API  --  Node.js + Express.js 5 + TypeScript             |
+  |           apps/api   (stateless, long-running container)           |
+  |                                                                    |
+  |  clerkMiddleware() -> getAuth(req)     RBAC + org/office scoping   |
+  |  Zod request validation                idempotency keys            |
+  |  audit log                             /v1 REST + /healthz         |
+  |  business logic: entitlements, SLA, derived attendance, reports    |
+  |  image-upload auth signing             cron worker (reports, cleanup)|
+  +--------------------------------------------------------------------+
+        |                 |                  |                 |
+        v                 v                  v                 v
+   Neon Postgres      ImageKit            Sentry         Stream (v1.1)
+   (Drizzle ORM,      media / CDN         errors         Video / Audio
+    pgvector)                             perf           + FCM/APNs ringing
 ```
 
-**Rule:** the mobile app never talks to Postgres, ImageKit (for upload credentials) or any secret-bearing
-service directly except through the API. ImageKit upload auth must be signed server-side.
+**Rules of the decoupled design**
+1. **One API, two clients.** Both clients talk *only* to `/v1` over HTTPS. No client reaches Postgres,
+   ImageKit private keys, Stream secrets or any other service directly.
+2. **Express owns all business logic** — entitlements, SLA, attendance derivation, report aggregation (D6).
+   Clients collect and render; they never compute money- or payroll-affecting values.
+3. **RTK Query owns server state in both clients** (D14): cache lifetime, invalidation tags, polling and
+   optimistic updates. Redux slices own only local, UI, session and **outbox** state.
+4. **`packages/shared` is the contract** (D15): request/response shapes are defined once in Zod and used by
+   Express validation and by both TypeScript clients.
+5. **The API is stateless** — Clerk tokens carry identity, there are no server sessions, and scaling out is
+   trivial (even though SBS volumes never require it).
 
 ### 8.2 Versions verified 21 Sep 2026
 
@@ -354,10 +435,14 @@ service directly except through the API. ImageKit upload auth must be signed ser
 | Mobile framework | **Expo SDK 57** (stable) | SDK 58 is in beta — do not adopt mid-build |
 | Navigation | Expo Router (file-based) | Included in SDK 57 template |
 | Auth (mobile) | **`@clerk/expo`** + `expo-secure-store`, `expo-auth-session`, `expo-crypto`, `expo-web-browser` | Clerk docs updated 18 Sep 2026 |
-| Auth (server) | Clerk backend SDK + session-token verification | Tokens are short-lived; verify per request |
+| Auth (admin ops) | Clerk backend SDK (`clerkClient`) | Server-side use for **invitations + user management** (D7) — not for authorization decisions |
 | Error monitoring | **`@sentry/react-native` 8.27.0** | Requires Expo SDK 50+; Expo Router tracing, OTA context, Session Replay, EAS dashboard integration |
-| Web/API | **Next.js 16.3.3** (Active LTS) | 15.5.24 is Maintenance LTS. Next.js now ships **monthly security releases** — budget a patch cadence |
-| ORM | **Drizzle ORM 0.45.3** + drizzle-kit | **Pin >= 0.45.3** (0.45.2 carried a SQL-injection fix). `v1.0.0-rc.4` exists — do not adopt the RC |
+| API runtime | **Node.js 22 LTS + Express.js 5.2.1** (Express 4.22.2 is still maintained; greenfield → v5) | Express 5 auto-forwards rejected promises from `async` handlers to error middleware, so `express-async-handler` wrappers are unnecessary. `path-to-regexp` syntax changed in v5 |
+| API language | **TypeScript (strict)** + **Zod** for runtime validation | TS types are erased at runtime; Zod is the real guard and the source of the OpenAPI spec (D18) |
+| API auth middleware | **`@clerk/express`** — `clerkMiddleware()` + `getAuth(req)` | Clerk docs updated 21 Sep 2026; supports cookie **and** header session JWTs, so mobile uses the header |
+| Admin frontend | **Next.js 16.3.3** (Active LTS), client-rendered consumer of the API | 15.5.24 is Maintenance LTS. Next.js ships **monthly security releases** — budget a patch cadence |
+| Client state & API | **Redux Toolkit 2.12.0 + RTK Query** in both clients (`react-redux` pinned at install) | RTK Query persistence via `extractRehydrationInfo` + `redux-persist`, **mobile only** |
+| ORM | **Drizzle ORM 0.45.3** + drizzle-kit — ⚠️ **disputed by C5** (the requested `apps/api` tree names Prisma + `PrismaPg`) | Pin >= 0.45.3 (0.45.2 carried a SQL-injection fix); `v1.0.0-rc.4` exists — do not adopt the RC. If Prisma wins instead: latest stable tag **7.10.0**, **8.0 in RC** (`v8.0.0-rc.11`, 13 Sep 2026), and pgvector needs raw SQL / TypedSQL |
 | DB | Neon Postgres (serverless, pooled/HTTP driver) | Enable **pgvector** and **branching** |
 | Media | ImageKit | Client-side compression before upload (D10) |
 | Calls (v1.1) | `@stream-io/video-react-native-sdk` v1 | Native module: **minSdk 24**, 16 KB page-size compliance needs SDK **>= 1.21.1**; needs GestureHandlerRootView; test on real devices only |
@@ -374,7 +459,8 @@ service directly except through the API. ImageKit upload auth must be signed ser
 | **Sentry** | Crash/perf diagnostics, release health | PII (explicitly scrub; vendor sample shows `sendDefaultPii: true` — we must set it **off**) |
 | **Stream Video/Audio** | Real-time audio/video calls (v1.1) | Messaging (Stream **Chat** is a separate paid product, deliberately not bought) |
 | **FCM/APNs** | Push delivery incl. ringing pushes | Scheduling / business logic |
-| **Vercel** | Hosting Next.js (admin + API) | Database (Neon is external) |
+| **Railway or Render** | Hosting the **Express API** container (long-running process, cron, report generation) | Being a database (Neon is external); CDN work (ImageKit does that) |
+| **Vercel** | Hosting the **Next.js admin frontend only** | Running the API — it is a separate service now |
 | **EAS** | Native builds + OTA JS updates | Changing native code over the air (impossible by design) |
 | **LLM provider (v1.1, TBD)** | Assistant responses + photo diagnosis | Being the source of truth for asset/contract state |
 
@@ -385,7 +471,9 @@ service directly except through the API. ImageKit upload auth must be signed ser
 | **Neon** | Free: 100 projects, **100 CU-hrs/mo per project**, **0.5 GB storage per project**, up to 2 CU, scale-to-zero after 5 min, 10 branches/project, 5 GB object storage, 1M function invocations. Launch: **$0.106/CU-hr**, **$0.35/GB-mo**, typical ~$15/mo | $0–15 |
 | **ImageKit** | Free: **20 GB bandwidth, 3 GB storage (uploads stop at the cap), 2 users**, 500 video units. Lite **$9/mo**: 40 GB bw + **$0.50/GB** overage, 10 GB storage + **$0.10/GB** overage, 3 users. Pro $89/mo | $9–15 |
 | **Stream Video/Audio** | **$100 usage credit every month** on all tiers; **333,000 free audio participant-minutes**; then **$0.30 per 1,000 participant minutes**; video priced by consumed resolution (Dynascale) | **$0** |
-| **Vercel** | Hobby is **non-commercial only** → a business app requires **Pro** | ~$20/mo |
+| **API host — Railway** | **Hobby $5/mo minimum usage**, includes $5 of monthly credits; up to 48 vCPU / 48 GB per service; metered memory **$0.00000386/GB/s**, CPU **$0.00000772/vCPU/s**, egress **$0.05/GB**. The Free plan ($1/mo, 1 vCPU / 0.5 GB) is not production-suitable | ~$5–10/mo |
+| **API host — Render** | Hobby workspace **$0/mo + compute**: 512 MB web service **$7/mo**, 2 GB / 1 CPU **$25/mo**, 4 GB **$85/mo**; Hobby includes 5 GB bandwidth; Pro workspace $25/mo + compute; SSD $0.25/GB/mo | ~$7–25/mo |
+| **Vercel (admin frontend)** | Hobby is **non-commercial only** → a business project requires **Pro** | ~$20/mo |
 | **Apple / Google** | $99/yr + $25 one-time | ~$8/mo amortised |
 | **Firebase (FCM)** | Free | $0 |
 | **Clerk / Sentry / EAS** | Free tiers plausibly cover ~50 users, but limits were **not verified in this pass** | $0–~150 **VERIFY** |
@@ -395,6 +483,165 @@ service directly except through the API. ImageKit upload auth must be signed ser
 > (10–20x). It must therefore ship with **per-user daily token caps + a hard monthly ceiling**, and it is
 > the **only** feature allowed to degrade visibly when a limit is hit. Everything else must fail silently
 > and gracefully (queued, retried, never losing a technician's work).
+
+### 8.5 Repository and folder structure (proposed)
+
+**Monorepo, npm workspaces (D15)** — one repo, three deployables, one shared contract.
+
+> **Status (22 Sep 2026): this tree now exists.** Folders, workspace manifests, shared presets and
+> per-workspace READMEs are in place; **no application code has been written yet**, and the dependencies of
+> `apps/api` / `apps/admin` / `packages/shared` are not installed (blocked partly on C5/C6 below).
+
+```
+sbs-mobileapp/
+├─ apps/
+│  ├─ api/        # Node + Express.js 5 + TypeScript   ->  Railway / Render
+│  ├─ mobile/     # Expo SDK 57 + RTK / RTK Query     ->  EAS Build + EAS Update
+│  └─ admin/      # Next.js 16.3 (client-only) + RTK  ->  Vercel
+├─ packages/
+│  ├─ shared/     # Zod schemas + inferred TS types + enums + constants (THE CONTRACT)
+│  └─ config/     # shared tsconfig / eslint / prettier presets
+├─ .github/workflows/   # CI: typecheck, test, migrate, deploy
+├─ package.json         # workspace root scripts: dev:api, dev:mobile, dev:admin
+└─ PLAN.md
+```
+
+**`apps/api` — the Express service (client-specified 4-layer structure)**
+
+> ⚠️ **Structure specified by the client (21 Sep 2026).** It replaces the earlier vertical-slice layout
+> (`modules/<domain>/{routes,service,repo,schema}.ts`). Two items in this tree **conflict with decisions already
+> locked** — see **C5 (Prisma vs Drizzle)** and **C6 (local login vs Clerk)** at the end of this section.
+
+```
+apps/api/
+└─ src/                                        # ── 4-LAYER ARCHITECTURE (DDD-style naming)
+   ├─ index.ts                                 # ENTRY POINT (app bootstrap)
+   │
+   ├─ api/                                     # ── LAYER 1: HTTP / ROUTING 
+   │  ├─ dashboard.ts                          # Router → GET /api/dashboard
+   │  └─ middlewares/
+   │     ├─ authentication-middleware.ts       # isAuthenticated + AuthRequest + JwtPayload types
+   │     ├─ global-error-handling-middleware.ts# 4-arg Express error handler
+   │     └─ validate.ts                        # Zod schema → 400 validation middleware
+   │
+   ├─ application/                             # ── LAYER 2: BUSINESS LOGIC (a.k.a. services)
+   │                               
+   │
+   ├─ domin/                                   # ── LAYER 3: DOMAIN (client’s spelling — see C9)
+   │  ├─ dtos/
+   │  ├─ errors/
+   │  │  ├─ app-error.ts                       # AppError base + mapStatusToCode()
+   │  │  ├─ validation-error.ts                # 400
+   │  │  └─ forbidden-error.ts                 # 403 (currently unused)
+   │  └─ utils/
+   │     └─ response.ts                        # sendSuccess() / sendError() envelopes
+   │
+   └─ infrastructure/                          # ── LAYER 4: EXTERNAL SYSTEMS
+      └─ db.ts                                 # PrismaClient + PrismaPg adapter, connectDB()
+```
+
+> **Note (client request, 21 Sep 2026):** `domin/errors/unauthorized-error.ts` was **removed** — not suitable
+> for this project. **401 responses still exist**: they are raised by `api/middlewares/authentication-middleware.ts`
+> through the **`AppError` base** (`mapStatusToCode()` maps the status to a code), so no dedicated class is needed.
+> `forbidden-error.ts` (403) is kept but currently unused — **flag it if it should go the same way.**
+
+**Dependency direction (never reversed):**
+```
+index.ts → api → application → domin
+                     ↓
+               infrastructure (db)
+```
+
+**Layer rules (what keeps this structure honest after month six)**
+1. `api/` may import `application/` and `domin/` — **never `infrastructure/` directly** — and holds no business rules.
+2. `application/` owns the logic and is **the only layer allowed to reach the database** (through `infrastructure/db.ts`).
+3. `domin/` is pure: DTOs (Zod), error classes, response helpers. No Express types, no DB imports, no `process.env`.
+4. `infrastructure/` knows nothing about HTTP; it exports clients/connections only.
+5. `index.ts` is bootstrap only: validate env → connect DB → mount routers → listen → graceful shutdown.
+6. **File names mirror across layers** (`api/task.ts` ↔ `application/task.ts` ↔ `domin/dtos/task.ts`).
+   This convention is the only thing that makes a horizontal layer layout navigable.
+
+*Trade-off accepted:* horizontal layers (this) are easier to onboard and enforce than vertical slices, but
+`application/` grows into the largest folder. Revisit the split if the domain passes ~15 modules.
+
+**Mapping the SBS domain into these four layers.** The tree above uses generic example names (`task`,
+`dashboard`). Our domain maps onto the same conventions with mirrored file names:
+
+| Layer | SBS files (same naming convention as the example tree) |
+|---|---|
+| `api/` | `employees.ts` (CRUD, invites, skills) · `offices.ts` · `customers.ts` (customers + sites) · `assets.ts` (installed systems) · `contracts.ts` (warranty/AMC) · `tickets.ts` (complaint intake, assignment, status) · **`visits.ts`** (attendance/job sessions — the core) · `media.ts` (ImageKit upload-auth signing) · `reports.ts` · `notifications.ts` (device tokens, push fan-out) |
+| `application/` | mirrored: `visits.ts`, `tickets.ts`, `customers.ts`, `assets.ts`, `contracts.ts`, plus `entitlements.ts` (warranty / free-visit maths — **server-only**, D6), `attendance.ts` (daily derivation), `reports.ts`, `notifications.ts`, and `seed.ts` extended to seed offices + complaint types |
+| `domin/dtos/` | `visits.ts`, `tickets.ts`, `assets.ts`, `contracts.ts`, `employees.ts`, `reports.ts` (Zod + inferred types) |
+| `domin/errors/` | `validation-error.ts` (400) + `forbidden-error.ts` (403, unused) **+** `not-found-error.ts` (404) **+** `conflict-error.ts` (409, for idempotency replays). **401 is raised via the `AppError` base** by the auth middleware — no dedicated class |
+| `infrastructure/` | `db.ts` (as specified) **+** the gaps below |
+
+**Gaps in the specified tree — each needs a home before coding starts**
+
+| Gap | Why it matters | Proposed placement |
+|---|---|---|
+| **Env validation** | The previous layout had `config/env.ts` failing fast on a missing `DATABASE_URL`/Clerk keys; this tree has no home for it | `infrastructure/config.ts`, imported only by `index.ts` |
+| **Migrations** | §13 requires migrations to run before the API takes traffic | `prisma/migrations/` if Prisma wins → **blocked on C5** |
+| **Generated DB client** | Prisma 7+ recommends an explicit output path | `src/generated/prisma/` (git-ignored, generated in CI) |
+| **Scheduled work** | §10.1 needs cron: derived attendance, SLA sweeps, orphaned-media cleanup | `infrastructure/scheduler.ts` + `application/jobs/*.ts` (or a separate worker later) |
+| **OpenAPI output (D18)** | Spec generated from Zod for docs + the CI contract check | `openapi/` beside `src/` |
+| **Idempotency keys** | Must survive restarts — a single container cannot dedupe replay in memory | an `idempotency_keys` table reached through `infrastructure/db.ts` |
+| **Tests** | Not in the tree, but §14 requires them | colocated `*.test.ts` **or** `tests/` — pick one now, not later |
+
+**⚠️ Conflicts introduced by this tree — registered, deliberately NOT resolved silently** (repeated in §17)
+
+- **C5 — ORM.** The tree specifies `PrismaClient` + `PrismaPg`; **D2 locks Drizzle 0.45.3**, and §13 says
+  `drizzle-kit migrate`. Moving to Prisma means the data model becomes `schema.prisma`, migrations become
+  `prisma migrate`, and **pgvector has no first-class type** (raw SQL / TypedSQL instead) — which matters for
+  the v1.1 AI retrieval work. Verified 21 Sep 2026: `@prisma/adapter-pg` with `PrismaPg({ connectionString })`
+  is the documented adapter pattern; latest stable tag is **7.10.0** while **8.0 is in RC** (`v8.0.0-rc.11`,
+  13 Sep 2026) even though the docs already default to v8 — **confirm the pin at install time.** Note that
+  Prisma is *more* viable now than under the original serverless assumption, since D17 gives a long-running
+  container.
+- **C6 — Identity (the serious one).** `POST /api/auth/login` + `application/auth.ts`
+  (`bcrypt.compare` + `jwt.sign`) + `seedAdminUser(admin@test.com / 123456)` describes a **self-managed
+  credential system**. That contradicts **D4/D7** (Clerk owns identity; invite-only provisioning; Sign in with
+  Apple/Google; public sign-up disabled). It would add password storage, hashing, reset and MFA surface, a
+  second source of identity, and a seeded default password that must never exist outside local development.
+- **C7 — DTO ownership.** `domin/dtos` vs `packages/shared` (**D15** = the cross-client contract). Proposed
+  resolution: `packages/shared` stays the single definition, `domin/dtos` imports/re-exports from it, and
+  API-only shapes live in `domin/dtos` alone.
+- **C8 — `api/auth.ts` semantics.** If Clerk stays, that router is invite-acceptance / session bootstrap,
+  **not** login — so the file comment should change with it.
+- **C9 — `domin/` spelling.** You flagged it yourself. A misspelled top-level folder is permanent noise in
+  every import path and in code review, and renaming later touches every file. **Recommend `domain/` now —
+  cost is zero.** Kept as `domin/` as instructed pending your call.
+
+**`apps/mobile` — the Expo app (where the existing scaffold belongs)**
+```
+apps/mobile/
+├─ src/
+│  ├─ app/                  # expo-router routes (the scaffold layout, kept)
+│  │  ├─ (auth)/           # sign-in, invite acceptance, onboarding
+│  │  └─ (app)/            # my-jobs, visit session, history, profile
+│  ├─ store/                # REDUX LIVES HERE
+│  │  ├─ index.ts          # configureStore + persistor + setupListeners
+│  │  ├─ baseQuery.ts      # fetchBaseQuery + Clerk token + 401 refresh + offline capture
+│  │  ├─ api.ts            # createApi: tagTypes + endpoints (shared types)
+│  │  ├─ outbox.ts         # persisted mutation queue (replay + idempotency keys)
+│  │  └─ slices/{auth,ui,drafts,sync}
+│  ├─ features/{jobs,visits,assets,history,profile}/
+│  ├─ components/ui/        # design-system primitives
+│  ├─ lib/{i18n,storage,location,compress,permissions}
+│  └─ theme/
+└─ app.config.ts             # EAS channels, runtimeVersion, permissions, plugins
+```
+
+**`apps/admin` — mirror of the same store shape** (`store/api.ts`, `store/slices/{auth,ui,filters}`) with
+pages under `src/app/`, but **no outbox** (admins are assumed online).
+
+**Contract flow:** Zod schema in `packages/shared` → Express validation → inferred TS types in both clients
+→ (v1.1, optional) RTK Query hooks generated by `@rtk-query/codegen-openapi` from `openapi/`.
+
+**⚠️ The stray scaffold from §0.1 maps to `apps/mobile`** — **done (22 Sep 2026):** it was reset to a blank
+`src/app` (so `npm run reset-project` no longer exists anywhere) and **moved into `apps/mobile`** by a
+history-preserving `git mv` during the monorepo restructure below. Still to do: **re-identify it for SBS** and
+drop the template `LICENSE` (see root `README.md` → Pending).
+
 ---
 
 ## 9. Security, authentication and authorization
@@ -407,7 +654,20 @@ service directly except through the API. ImageKit upload auth must be signed ser
   pathway that bypasses browser-based CAPTCHA". **Mitigation is mandatory:
   public sign-up must be disabled** — accounts exist only via admin-created employees (D7).
 - Token storage: `expo-secure-store`. No tokens in AsyncStorage, no tokens in logs.
-- Server-side: verify the Clerk session token on **every** API request (D4); reject on missing/invalid.
+- Server-side (Express): `app.use(clerkMiddleware())` attaches the auth object to every request and each
+  protected route calls **`getAuth(req)`** (or a `requireAuth` / `requireRole` wrapper). Reject on
+  missing/invalid (D4). Mobile sends the **header** JWT; the admin frontend may use the cookie.
+  In the requested tree this lives in `src/api/middlewares/authentication-middleware.ts` — see **C6** if the
+  local `bcrypt`/`jwt` login path is genuinely intended.
+- **CORS:** the admin frontend is a browser client on a different origin, so the API needs an explicit
+  per-environment **allowlist** (never `*`). The mobile app is not a browser origin and is unaffected.
+- **Edge hardening:** `helmet`, small JSON body limits (images go straight to ImageKit, so request bodies
+  stay tiny), per-token rate limiting on write endpoints, and no stack traces in responses.
+- **One error envelope** `{ error: { code, message, details? } }` from the central handler, so both clients
+  can render errors uniformly instead of guessing per screen.
+- **Correlation IDs** on every request, echoed in logs, Sentry and the error envelope — the only practical
+  way to debug a technician reporting that something failed.
+- **`/healthz`** (liveness + database ping) for the host health check and the uptime monitor.
 
 ### 9.2 Provisioning and de-provisioning
 **Onboarding is invite-only.** Admin creates employee → Clerk invitation (email or SMS) carrying a
@@ -451,21 +711,34 @@ within the same transaction/flow —
 ### 10.1 What happens asynchronously
 | Work | Trigger | Retry / idempotency | User sees while waiting |
 |---|---|---|---|
-| Visit/clock submission | Technician action | Persistent queue, exponential backoff; **`idempotency_key` prevents duplicates** on replay | Optimistic "Saved — will sync" badge; never a blocking spinner |
+| Visit/clock submission | Technician action → **RTK Query mutation** | The custom `baseQuery` moves failed writes into the persisted **`outbox` slice**; replayed with backoff and an **`Idempotency-Key`**, so a duplicate replay is a no-op | Optimistic update + "Saved — will sync" badge; never a blocking spinner |
 | Photo upload to ImageKit | After compression, post-submit | Retried independently of the visit record — the **visit is never blocked by a failed image** | Thumbnail with a pending indicator |
 | Push notifications | Ticket assign/reassign, approval, SLA breach, incoming call | Delivery state tracked; failures surface as business alerts | Silent |
 | Derived attendance | Nightly + on demand | Fully regenerable from `visits` (safe to recompute) | Not user-facing |
-| Report queries | On admin request (v1) | Plain SQL first; materialise only if slow | Loading state, CSV export |
-| Orphaned media cleanup | Scheduled | Deletes ImageKit files with no referencing row | Not user-facing |
+| Report queries | Admin request → `GET /v1/reports/...` via RTK Query | Plain SQL in the API first; materialise `attendance_days` only if slow; cached by RTK Query tags | Loading state; CSV export |
+| Orphaned media cleanup | Cron in `infrastructure/scheduler.ts` (proposed — §8.5 gaps) | Deletes ImageKit files with no referencing row; idempotent | Not user-facing |
+| SLA sweeps / reminders | Cron in `infrastructure/scheduler.ts` (proposed — §8.5 gaps) | Idempotent per (ticket, threshold); safe to re-run | Produces notifications only |
 
-### 10.2 State and data flow
-- **Server is the source of truth**; the device keeps a read cache (today's jobs, assigned assets,
-  lookup lists such as complaint types) plus a durable write queue.
-- **Optimistic UI** on submit; the technician is never blocked by connectivity (L8).
-- **No realtime subscriptions in v1** — refresh on focus + pull-to-refresh + push notification for
-  changes. Realtime (websockets) is a v1.1+ decision, not a v1 dependency.
+### 10.2 State and data flow (decoupled + RTK Query)
+- **Source of truth:** Neon, reached only through the Express API. The client cache is a *read-through
+  convenience*, never authority (D6).
+- **Two-layer client state (D14):** **RTK Query** owns every server-derived collection (my jobs, ticket
+  detail, asset and history lists, lookup lists) with **tag-based invalidation**; **Redux slices** own
+  session, UI state, in-progress **drafts** and the **outbox**.
+- **Optimistic UI:** mutations apply instantly via `onQueryStarted` + `updateQueryData`, then reconcile with
+  the server response. The technician is never blocked by connectivity (L8).
+- **Offline read:** the RTK Query cache is persisted (`extractRehydrationInfo` + `redux-persist`) with a
+  deliberately **short `keepUnusedDataFor`** — some staleness is accepted in exchange for a usable app in a
+  dead zone.
+- **Offline write:** mutations that fail with a network error are moved to the persisted **outbox** and
+  replayed in order with an `Idempotency-Key`; the UI shows `pending → synced` or `pending → failed` per item.
+- **Revalidation:** `setupListeners(store.dispatch)` enables `refetchOnReconnect` and `refetchOnFocus`; push
+  notifications additionally invalidate affected tags, so a new assignment appears without a manual pull.
+- **No realtime subscriptions in v1** — refresh on focus, pull-to-refresh and push-driven invalidation.
+  Websockets remain a v1.1+ decision, not a v1 dependency.
 - **Conflict rule:** per-field last-write-wins with server timestamps, **except attendance**, which is
-  append-only through corrections (edit requires reason → `audit_log`). No silent overwrites of time data.
+  append-only through corrections (edit requires a reason → `audit_log`). Attendance is **always re-validated
+  server-side on arrival**, even when it arrives from the outbox.
 
 ### 10.3 Failure modes and edge cases (each needs an explicit behaviour)
 
@@ -491,6 +764,7 @@ within the same transaction/flow —
 | 18 | No internet for hours, multiple queued visits | Queue processes in order with bounded concurrency; ordering preserved within a visit |
 | 19 | Customer site has no address (only "the bank branch") | Site record allows free-text access instructions; GPS pin optional |
 | 20 | Technician on leave but assigned a job | Block assignment with a clear message; allow override with reason |
+
 ---
 
 ## 11. Non-functional requirements
@@ -498,6 +772,8 @@ within the same transaction/flow —
 ### 11.1 Performance
 - App cold start to "My Jobs" list on a mid-range Android device: **< 3 s**, usable offline from cache.
 - Any technician action (clock in/out, submit notes) is **instant in the UI** and never waits on network.
+- **API targets** (`/v1`): writes p95 **< 400 ms**, list/detail reads p95 **< 600 ms**, reports p95 **< 2 s**
+  (including Colombo → host-region latency). The API is the only layer allowed to be slow, and only for reports.
 - Admin list/report queries: **< 2 s** at SBS volumes (50 staff, ~2,000 customers, tens of thousands of
   visits/year). If a report exceeds that, materialise `attendance_days` first, not micro-optimise SQL.
 - Image uploads happen after submission, compressed to **~200–400 KB**, and are free to fail.
@@ -549,10 +825,17 @@ within the same transaction/flow —
 us that a job sat unaccepted for six hours while a customer waited.
 
 ### 12.1 Technical
-- `@sentry/react-native` **8.27.0** with Expo Router tracing, OTA-update context and EAS dashboard
-  integration; matching server-side error capture in Next.js.
-- **PII scrubbing enabled** (`sendDefaultPii` off); Session Replay evaluated for disclosure risk.
-- Next.js is on a **monthly security release cadence** → schedule a monthly dependency/patch review.
+- `@sentry/react-native` **8.27.0** on mobile (Expo Router tracing, OTA-update context, EAS dashboard
+  integration).
+- **Sentry on the Express API** (error handler + performance) and on the admin frontend — one Sentry project
+  per surface, tagged with service, environment and release, so an **API** regression is never confused with
+  an **app** regression.
+- **PII scrubbing everywhere** (`sendDefaultPii` off); Session Replay evaluated for disclosure risk; request
+  bodies are not attached to error events.
+- **Uptime monitoring** against `GET /healthz` with alerting — the API is its own service now (D17), so someone
+  must be told when it stops responding (R22).
+- Next.js is on a **monthly security release cadence**; Express/Node and the Neon client also need patch
+  review → one scheduled monthly maintenance slot for all three deployables.
 
 ### 12.2 Business failure signals (the ones that actually matter)
 | Signal | Threshold | Why it matters |
@@ -593,6 +876,18 @@ us that a job sat unaccepted for six hours while a customer waited.
   retrieved in this session and **must be confirmed before we rely on OTA for anything beyond bug fixes**.
 - **Store/native accounts required:** Apple Developer ($99/yr) + APNs key, Google Play ($25) + Play
   internal track, Firebase project (FCM). Ownership per F7 (default: SBS-owned, you as admin).
+- **Three deployables per environment (D17):** the **API** container (Railway/Render), the **admin**
+  frontend (Vercel) and the **mobile** build (EAS). Each has its own pipeline and its own rollback.
+- **Migrations:** the migration step (**drizzle-kit** or `prisma migrate` — see **C5**) runs against Neon **before** the new API version
+  takes traffic; migrations must be backward-compatible for one version (expand → migrate → contract),
+  because a field phone can lag behind the API.
+- **Deploy order:** migrations → API → admin → mobile update. Never invert it.
+- **CORS per environment:** staging and production allowlists contain only their own admin origin; the
+  mobile app needs no CORS entry (it is not a browser origin).
+- **Config:** `.env` locally (Node 22 supports `--env-file=.env` natively), host env vars in staging and
+  production; `infrastructure/config.ts` (proposed placement, §8.5 gaps) fails fast on a missing key.
+- **Compatibility window:** the API must stay backward-compatible down to the **minimum supported client
+  version** (see the forced-update rule above). This is the direct cost of decoupling.
 
 ---
 
@@ -609,6 +904,12 @@ us that a job sat unaccepted for six hours while a customer waited.
 
 ### 14.2 Tooling
 - Unit/integration: Vitest/Jest per stack convention; Drizzle + a throwaway Neon branch for DB tests.
+- **API:** integration tests with **Supertest** against the Express app — auth, RBAC office scoping,
+  idempotency replay, entitlement maths. These are the tests that protect money and payroll data.
+- **Clients:** RTK Query endpoints tested with **MSW** rather than mocking store internals; the auth and
+  `outbox` reducers are unit-tested directly (replay ordering, duplicate suppression).
+- **Contract drift:** a CI check that `packages/shared` schemas still match the generated OpenAPI spec
+  (D18) — this is what stops two clients drifting away from one API.
 - End-to-end: **Maestro** (the flow tooling Expo's ecosystem supports) for the technician smoke path:
   launch → clock in → add photo → submit → verify sync.
 - Real-device testing is mandatory for camera/GPS/push; emulators are insufficient.
@@ -649,6 +950,7 @@ and who holds the Clerk/Neon/ImageKit/Stream/Apple keys. **Must be answered befo
 - Billing accounts owned by SBS per F7; you keep admin access during build.
 - Document the "what to do when X breaks" runbook: push failures, ImageKit cap, Neon cap, API down,
   a technician's phone lost/stolen.
+
 ---
 
 ## 16. Assumptions (everything here is a GUESS until confirmed)
@@ -691,6 +993,11 @@ for design choices but **cannot** supply facts about the business. Each is label
 | **A24** | No realtime/websockets in v1 (refresh-on-focus + push) | If "live board" expectations are strong, add polling first, websockets later |
 | **A25** | Non-breaking releases may offer a dismissible update prompt | A stricter policy is a config change, not a redesign |
 | **A26** | ImageKit free tier's **2-user cap** is sufficient (3 users on Lite at $9/mo) | Extra ImageKit dashboard users force the paid plan earlier |
+| **A27** | The admin frontend **stays Next.js** as a client-rendered API consumer (D13) | If a lighter SPA (Vite + React Router) is preferred, the admin shell is rebuilt — pages and RTK Query hooks largely survive |
+| **A28** | The API runs as a **long-running container** on Railway or Render (D17) | A serverless preference would change pooling, cron and cold-start behaviour — a genuine re-plan of §8 and §10 |
+| **A29** | **Monorepo with npm workspaces** (D15); no Turborepo/Nx yet | Build times stay acceptable at this size; adding a build orchestrator later is config, not a rewrite |
+| **A30** | RTK Query cache persisted with `redux-persist` over **AsyncStorage** initially (D16) | If queue reliability proves marginal, move the outbox to `expo-sqlite` or MMKV — contained behind the `outbox` slice interface |
+| **A31** | **Express 5.2.1** for this greenfield API | Falling back to Express 4.22.2 means re-adding async error wrappers and reverting `path-to-regexp` conventions |
 
 ---
 
@@ -717,12 +1024,36 @@ for design choices but **cannot** supply facts about the business. Each is label
 13. Retention defaults in §15.2 — confirm or override.
 14. Legal review of the location-monitoring notice before launch.
 
+**Decisions introduced by the decoupled architecture (new — need your call)**
+
+15. **Admin frontend framework:** keep Next.js client-rendered (default, D13), or move to a Vite +
+    React Router SPA? The latter is lighter but is a framework swap you did not originally ask for.
+16. **API hosting:** Railway (usage-metered, $5/mo minimum including credits) vs Render (flat compute tiers,
+    $7–25/mo) — and who owns the account and approves the monthly ceiling? (D17)
+17. **Contract tooling depth:** shared Zod + TypeScript types only (v1 default), or also generated OpenAPI
+    plus `@rtk-query/codegen-openapi` hooks now? (D18)
+18. **Outbox persistence:** AsyncStorage (default) or go straight to `expo-sqlite`/MMKV for the write
+    queue? (D16, A30)
+
+**⚠️ Conflicts from the requested `apps/api` folder structure (resolve before coding)**
+
+23. **C5 — Prisma or Drizzle?** The tree says `PrismaClient` + `PrismaPg`; D2 says Drizzle 0.45.3. The data model,
+    migration tooling and the pgvector approach all follow from this one call.
+24. **C6 — Clerk or local credentials?** The tree implies `bcrypt` + `jwt.sign` login with a seeded
+    `admin@test.com / 123456`. Confirm Clerk remains the identity provider (recommended) or accept a second,
+    self-managed auth system.
+25. **C7 — where DTOs live:** `domin/dtos`, or `packages/shared` as the single cross-client contract?
+26. **C8 — what `api/auth.ts` means** if Clerk stays (invite acceptance / session bootstrap, not login).
+27. **C9 — `domin/` or `domain/`?** Recommend fixing the spelling now; it is free today and expensive later.
+28. **Where tests live:** colocated `*.test.ts` or a `tests/` directory (§8.5 gaps).
+
 **Verification tasks (research I owe you)**
-15. Clerk / Sentry / EAS current free-tier limits and the exact price of the first paid tier.
-16. Store-policy boundary for **OTA updates** (Apple/Google) — currently unverified.
-17. ImageKit plan sizing against real photo volume; 2-user cap vs actual admin headcount.
-18. Neon storage/compute sizing: the free tier's **0.5 GB per project** will not hold years of visits —
+19. Clerk / Sentry / EAS current free-tier limits and the exact price of the first paid tier.
+20. Store-policy boundary for **OTA updates** (Apple/Google) — currently unverified.
+21. ImageKit plan sizing against real photo volume; 2-user cap vs actual admin headcount.
+22. Neon storage/compute sizing: the free tier's **0.5 GB per project** will not hold years of visits —
     decide when to move to Launch (~$15/mo typical).
+
 ---
 
 ## 18. Open risks
@@ -749,6 +1080,13 @@ for design choices but **cannot** supply facts about the business. Each is label
 | **R18** | **Unverified vendor limits** (Clerk/Sentry/EAS) surprise the budget | Low | Verification task §17.15 |
 | **R19** | **GPS monitoring resistance** from staff | Medium | Action-only capture, plain-language notice, and the A18 confirmation with the team early |
 | **R20** | **No named production on-call owner** at a 24/7 business | High | §12.3 — decide who answers when the API is down at 2 a.m. |
+| **R21** | **Three deployables instead of one** — more parts, three pipelines, more room to drift | Medium | Shared contract package + CI contract check (D18/§14.2); fixed deploy order (§13) |
+| **R22** | **The API is a single point of failure** — if the container dies, field work stalls | High | `/healthz`, host restart policy, uptime alerting; clients keep working from cache for reads and outbox for writes |
+| **R23** | **CORS / token misconfiguration** between the admin origin and the API (classic decoupled failure) | Medium | Explicit per-environment allowlists, staging verification before each release, automated 401/403 tests |
+| **R24** | **Stale persisted RTK Query cache** shows a technician outdated job data | Medium | Short `keepUnusedDataFor`, `refetchOnReconnect`/`refetchOnFocus`, push-driven tag invalidation, and server re-validation of every attendance write |
+| **R25** | **Type drift** between `packages/shared` and the live API | Medium | Contract CI check (D18) plus Zod validation at the API boundary, so a mismatch fails loudly rather than silently |
+| **R26** | **Two identity systems drift** if a local JWT login is added beside Clerk (C6) | High | Resolve C6 before building; if both are ever needed, one must be explicitly subordinate |
+| **R27** | **Seeded default credentials** (`admin@test.com / 123456`) reaching a real environment | High | Seed only in local/dev behind an env guard, and assert in CI that seeding cannot run in production |
 
 ---
 
@@ -760,12 +1098,16 @@ for design choices but **cannot** supply facts about the business. Each is label
 2. **Confirm or veto the A-list (§16)** — especially A3 (payroll), A5 (language), A10 (the one screen),
    A6 (existing data), A18 (GPS acceptance).
 3. **Close blocking open questions (§17.1–4)**, including the ownership model.
-4. **Verification tasks (§17.15–18)** — vendor limits, OTA store policy, ImageKit/Neon sizing.
-5. **Then, and only then:** produce **Part B — Implementation Plan** below (phased milestones,
+4. **Verification tasks (§17.19–22)** — vendor limits, OTA store policy, ImageKit/Neon sizing.
+5. **Architecture revision captured:** the decoupled design is recorded in **§5 (D1, D3, D4, D13–D18)**, **§8**
+   and the new **§8.5**. Part B will be written for the decoupled stack (Express API + RTK Query clients),
+   not for the discarded Next.js monolith.
+6. **Then, and only then:** produce **Part B — Implementation Plan** below (phased milestones,
    task breakdown, sequencing rationale, and the first two weeks' work), and start building.
 
-> Nothing has been scaffolded: no `package.json`, no git repo, no dependencies, no config, no accounts.
-> The project directory contains this file only.
+> **Scaffolding status:** see §0.1. This session created no project files other than `PLAN.md`.
+> A default Expo scaffold plus `node_modules` (485 MB) is present in the directory from an **external
+> action at 21:36 on 21 Sep 2026**; this plan has neither assessed, modified nor endorsed it.
 
 ---
 
