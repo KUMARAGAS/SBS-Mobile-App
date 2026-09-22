@@ -54,3 +54,4 @@ npm run typecheck    # tsc --noEmit across every workspace that defines the scri
 7. **ESLint is not configured yet** — `packages/config/eslint` holds the shared preset, but no `eslint`
    dependency is installed, so `npx expo lint` would prompt to install it.
 
+# SBS-Mobile-App
