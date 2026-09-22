@@ -1,56 +1,39 @@
-# Welcome to your Expo app 👋
+# SBS Field Service — Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo SDK 57 + React Native technician app for **SBS.COM OFFICE SOLUTIONS (PVT) LTD**.
+
+**Status: blank Expo project.** The `create-expo-app` tutorial screens were stripped on 21 Sep 2026 —
+the template's own `reset-project` script was run in *delete* mode, so `src/` now contains only a blank
+`src/app`. No application code has been written yet.
+
+Removed with them: `src/app/explore.tsx` (the Explore tab), every demo component (`hint-row`, `web-badge`,
+`animated-icon*`, `app-tabs*`, `themed-text`/`themed-view`, `ui/collapsible`, `external-link`),
+`src/constants/theme.ts`, `src/hooks/*`, `src/global.css`, the Expo/React logo and tutorial images
+(`assets/images/expo-badge*.png`, `react-logo*`, `logo-glow.png`, `tutorial-web.png`, `tabIcons/*`), and
+`scripts/reset-project.js` together with its `reset-project` npm script.
+
+The full product plan (scope, data model, architecture, decisions, risks) lives in [`PLAN.md`](./PLAN.md).
+
+## Decided stack (not yet installed)
+Expo SDK 57 · Expo Router · Redux Toolkit + RTK Query · Clerk (`@clerk/expo`) ·
+Node + Express + TypeScript API · Neon Postgres · ImageKit · Sentry · EAS Build / Update.
 
 ## Get started
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- Use **`npx expo install <package>`** — never `npm install <package>` — so versions stay SDK-compatible.
+- Before finishing any change, run `npx tsc --noEmit` and `npx expo lint`.
+- Native code is generated (CNG): never hand-edit `ios/` or `android/`; configure via `app.json` and config plugins.
+- Routes live in `src/app/`; every file there is a screen. Non-route code belongs outside `src/app/`.
 
-### Other setup steps
+## Pending
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. This app is planned to sit at `apps/mobile` in the monorepo described in `PLAN.md` §8.5 — it is still at the repo root.
+2. App identity in `app.json` is still the template placeholder (`Mobileapp`) and needs SBS naming + bundle IDs.
+   `assets/images/*` (icon, splash, favicon, Android adaptive icons) and `assets/expo.icon/` are still
+   Expo-branded template art and need to be replaced with SBS assets before any build.
+3. `LICENSE` is the Expo template's MIT licence and should be replaced or removed for a commercial client project.
