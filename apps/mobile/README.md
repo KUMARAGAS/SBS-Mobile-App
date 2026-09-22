@@ -13,6 +13,29 @@ npm run dev:mobile   # or: cd apps/mobile && npx expo start
 
 Add packages **only** with `npx expo install <pkg>` so versions stay SDK-compatible.
 
+## Development build (`expo-dev-client`)
+
+`expo-dev-client` (`~57.0.19`) is installed, so `npx expo start` targets a **development build** rather than Expo
+Go — Expo Go cannot load native modules added later (reanimated/worklets today; camera, location, secure store,
+sqlite as they land). Profiles live in `eas.json` (`development` = dev client + internal distribution); the app
+identity is `com.sbs.mobileapp` (`ios.bundleIdentifier` / `android.package` in `app.json` — still `Mobileapp`
+for `name`/`slug` and Expo-branded icons until the SBS artwork lands). Until a dev build is installed, the
+JS-only screens still open in Expo Go with `npx expo start --go`.
+
+```bash
+# EAS cloud — use this path: the dev machines here have no Android SDK and no macOS
+npx eas-cli@latest login                                            # once, per machine
+npx eas-cli@latest build --profile development --platform android   # or ios
+npx expo start                                                      # open the dev client, connect to the bundler
+
+# local toolchain (Android SDK, or macOS for iOS) — prebuild + compile + install + start
+npx expo run:android --device
+```
+
+Native projects are generated (CNG). Rebuild the binary after installing a native library or changing
+`app.config`/`app.json`; JS-only changes just need `npx expo start`. EAS and `expo run:*` run prebuild for you,
+so a manual `npx expo prebuild --clean` is only needed to refresh the local `android/`/`ios/` folders.
+
 ## Structure (PLAN.md §8.5 — folders exist, files land with implementation)
 
 ```
