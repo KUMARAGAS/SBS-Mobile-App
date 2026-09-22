@@ -1116,3 +1116,4 @@ for design choices but **cannot** supply facts about the business. Each is label
 **Status: NOT YET WRITTEN.** Blocked on §17 (blocking open questions) and §16 (fact confirmations).
 This section will contain the phased build plan, milestone sequencing, task breakdown, and the
 agreed definition of done — once the interview closes per §19.
+
