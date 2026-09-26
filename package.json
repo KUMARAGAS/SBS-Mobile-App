@@ -17,7 +17,13 @@
     "android": "npm run android --workspace @sbs/mobile",
     "ios": "npm run ios --workspace @sbs/mobile",
     "web": "npm run web --workspace @sbs/mobile",
+    "brand:assets": "npm run brand:assets --workspace @sbs/mobile",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
+  },
+  "dependencies": {
+    "expo": "~57.0.24",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
   }
 }
