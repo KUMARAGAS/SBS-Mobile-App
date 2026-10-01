@@ -30,13 +30,23 @@ import { backdropScrim, brandBloom } from '@/theme/tokens';
  * `nativewind/preset` — hence `styles.scrim` rather than `absolute inset-0`.
  */
 const styles = StyleSheet.create({
+  /*
+   * `pointerEvents` as a *style*, not a prop.
+   *
+   * react-native-web 0.21 warns `props.pointerEvents is deprecated. Use
+   * style.pointerEvents` for the prop spelling (see `createDOMProps`), and RN
+   * 0.86 documents `pointerEvents` under View *Style* Props, so the style form
+   * is the one both renderers agree on. The overlay is inert either way — the
+   * screen above it owns all interaction.
+   */
+  root: { pointerEvents: 'none' },
   artwork: { width: '100%', height: '100%' },
   scrim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
 });
 
 export function AuthBackdrop() {
   return (
-    <View className="absolute inset-0 bg-canvas-1" pointerEvents="none">
+    <View className="absolute inset-0 bg-canvas-1" style={styles.root}>
       <Image source={brandAssets.hero} style={styles.artwork} contentFit="cover" transition={0} />
 
       <LinearGradient

@@ -39,3 +39,36 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Clerk agent skills
+
+Agent Skills from `clerk/skills` are installed at project scope and committed here, so every agent and
+teammate gets the same Clerk guidance. Canonical copies live in `.agents/skills/` (read by Cline, Cursor,
+Codex, Gemini CLI, …) and are symlinked into `.claude/skills/` for Claude Code; `skills-lock.json` pins
+the revisions.
+
+| Installed skill | Why it is here |
+|---|---|
+| `clerk` | The router — read it first; every other Clerk skill is reached through it |
+| `clerk-expo` | `apps/mobile` — `@clerk/expo`, Expo Router guards, `useSSO`, token cache |
+| `clerk-nextjs-patterns` | `apps/admin` — `@clerk/nextjs` middleware, Server Actions, caching |
+| `clerk-backend-api` | `apps/api` — `clerkClient` calls for invitations and user administration (D7) |
+| `clerk-webhooks` | `apps/api` — de-provisioning and sync on `user.*` / `session.*` events (§9.2) |
+| `clerk-setup` | Wiring the not-yet-built `apps/api` and `apps/admin` integrations |
+| `clerk-cli` | `clerk env pull`, user/session inspection, local webhook testing |
+| `clerk-custom-ui` | The hand-built sign-in screen and the admin console's Clerk appearance |
+
+Deliberately **not** installed: `clerk-orgs` (§9.3 — Clerk orgs/roles are not the source of truth for
+employment; tenancy is `org_id` in Neon), plus `clerk-billing`, `clerk-testing`, `clerk-swift`,
+`clerk-android` and the web frameworks this repo does not use.
+
+```bash
+npx skills list                                     # what is installed
+npx skills update                                   # pull newer revisions
+npx skills add clerk/skills --skill <name> -a claude-code cline -y   # add one more
+```
+
+**Version gap to watch.** `clerk-expo` states it was verified against `@clerk/expo` 3.6.x on Expo SDK 53–56,
+but this repo runs `@clerk/expo` 4.7.1 on Expo SDK 57. Its freshness gate therefore applies: verify volatile
+APIs against `node_modules/@clerk/expo/package.json#exports` and `node_modules/@clerk/expo/dist/**/*.d.ts`
+before trusting one of its snippets.

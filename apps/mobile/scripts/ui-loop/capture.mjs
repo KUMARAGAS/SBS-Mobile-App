@@ -199,8 +199,8 @@ const geometryExpression = `(() => {
     document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
     fonts: {
       status: document.fonts.status,
-      inter: document.fonts.check('16px Inter_400Regular'),
-      interSemibold: document.fonts.check('16px Inter_600SemiBold'),
+      regular: document.fonts.check('16px Manrope_400Regular'),
+      semibold: document.fonts.check('16px Manrope_600SemiBold'),
     },
     boxes,
     images,
@@ -257,7 +257,7 @@ async function main() {
 
     await cdp.send('Page.navigate', { url: opts.url });
 
-    // Wait for the Metro bundle to mount, then for Inter to be in use.
+    // Wait for the Metro bundle to mount, then for Manrope to be in use.
     const deadline = Date.now() + 90000;
     let ready = false;
     while (Date.now() < deadline) {

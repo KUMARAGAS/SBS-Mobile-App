@@ -27,7 +27,7 @@ type PendingControl = HostedAuthMode | 'google' | 'apple';
 /**
  * Sign in — the app's front door, wired to the linked Clerk instance.
  *
- * Three deliberate departures from `design/auth_screen_design.png`:
+ * Four deliberate departures from `design/auth_screen_design.png`:
  *
  *   1. **There is no password field.** The app has no password credential to
  *      collect: `PLAN.md` §9.1 puts identity in Clerk with only *Sign in with
@@ -47,6 +47,21 @@ type PendingControl = HostedAuthMode | 'google' | 'apple';
  *      of the drawing's 800 dp, and one more pill plus its gap would put it at
  *      823. The screen scrolls, so nothing clips — the mock's composition simply
  *      stops being exact, which is the price of answering "how do I register?".
+ *   4. **Brand-tinted text.** The drawing sets every string in the palette's
+ *      white (`ink.DEFAULT`), which is the flattest thing on a screen whose
+ *      backdrop is a bright globe under a scrim — the same complaint that made
+ *      `AuthBackdrop` necessary. The wordmark and the section heading carry
+ *      `text-ink-brand` (the brand cyan) and the two supporting brand lines the
+ *      periwinkle `text-accent-tagline`. It is a legibility trade, not a free
+ *      win: white scored 8.9:1 over the artwork behind `SBS` where the cyan
+ *      scores 5.4:1 (10.6:1 against flat `canvas.deep`), so the top of the screen
+ *      is AA rather than AAA now. Cyan is worth that at 42 dp and 26 dp — both
+ *      clear the 3:1 large-text bar by more than 1.7x — and lower down, where the
+ *      scrim is at full strength, the cyan measures 7.9:1 and reads as AAA. It
+ *      stops there: the tertiary helper keeps `text-ink-muted` so it stays behind
+ *      the line it explains, and every control label (`Sign In`, `Continue
+ *      with…`, the field's own text) stays white because those sit on a fill, not
+ *      on the artwork, where white is the legible choice.
  *
  * Both halves of the screen are live against the Clerk instance the app is linked
  * to. `Sign In` and `Create an account` open hosted Account Portal in a browser
@@ -181,10 +196,10 @@ export default function SignInScreen() {
           {/* Brand lockup */}
           <View className="items-center pt-[77px]">
             <SbsLogoMark />
-            <AppText weight="bold" className="mt-1 text-display text-ink">
+            <AppText weight="bold" className="mt-1 text-display text-ink-brand">
               SBS
             </AppText>
-            <AppText weight="semibold" className="text-heading text-ink">
+            <AppText weight="semibold" className="text-heading text-ink-brand">
               Field Service
             </AppText>
             <AppText className="mt-2 text-center text-tagline text-accent-tagline">
@@ -194,10 +209,10 @@ export default function SignInScreen() {
 
           {/* Credentials — identifier only; there is no password to collect. */}
           <View className="mt-9">
-            <AppText weight="semibold" className="text-center text-heading text-ink">
+            <AppText weight="semibold" className="text-center text-heading text-ink-brand">
               Welcome Back
             </AppText>
-            <AppText className="mt-2 text-center text-label text-ink-subtle">
+            <AppText className="mt-2 text-center text-label text-accent-tagline">
               Sign in to your account
             </AppText>
           </View>

@@ -1,0 +1,66 @@
+{
+  "viewport": {
+    "width": 360,
+    "height": 800
+  },
+  "document": {
+    "width": 360,
+    "height": 800
+  },
+  "fonts": {
+    "status": "loaded",
+    "inter": false,
+    "interSemibold": false
+  },
+  "boxes": [
+    {
+      "name": "logoMark",
+      "missing": true
+    },
+    {
+      "name": "title",
+      "missing": true
+    },
+    {
+      "name": "subtitle",
+      "missing": true
+    },
+    {
+      "name": "tagline",
+      "missing": true
+    },
+    {
+      "name": "welcome",
+      "missing": true
+    },
+    {
+      "name": "welcomeSub",
+      "missing": true
+    },
+    {
+      "name": "field1",
+      "missing": true
+    },
+    {
+      "name": "fieldHint",
+      "missing": true
+    },
+    {
+      "name": "cta",
+      "missing": true
+    },
+    {
+      "name": "google",
+      "missing": true
+    },
+    {
+      "name": "apple",
+      "missing": true
+    },
+    {
+      "name": "invite",
+      "missing": true
+    }
+  ],
+  "images": []
+}

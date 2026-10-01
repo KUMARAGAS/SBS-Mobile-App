@@ -9,9 +9,18 @@
  * Values that have to be handed to a JS API (gradient stops, shadows, SVG
  * fills) live in `src/theme/tokens.ts` — keep the two in sync.
  *
- * Note on fonts: Inter ships as one file per weight and React Native does not
- * synthesise weights for a custom family, so each weight is its own family
- * (`font-inter-medium`, …) rather than a `font-weight` utility.
+ * Note on fonts: Manrope (the app face, loaded in `src/app/_layout.tsx`) ships
+ * one file per weight, and React Native does not synthesise weights for a custom
+ * family — so each weight is its own family rather than a `font-weight` utility.
+ *
+ * The utility names are deliberately face-agnostic (`font-body-medium`, …), and
+ * the family strings below must match the keys passed to `useFonts`. Naming the
+ * face in exactly two files is what makes a typeface swap a two-line change
+ * rather than a find-and-replace across every screen.
+ *
+ * The `fontSize` tracking values were tuned against the previous face's metrics
+ * and are left alone here: a swap shifts glyph widths by a few px, while the dp
+ * grid, the line heights and every measured box stay where the design put them.
  */
 const colors = {
   brand: {
@@ -26,7 +35,22 @@ const colors = {
   canvas: { 1: '#001117', 2: '#161822' },
   glass: { 1: '#1C2333', 2: '#1E2A3A' },
   hairline: '#475569',
-  ink: { DEFAULT: '#F1F5F9', muted: '#94A3B8', subtle: '#CBD5E1' },
+  /*
+   * Text ink. `DEFAULT`/`muted`/`subtle` are the palette's three greys; `brand`
+   * is the app's one deliberate tint — the sign-in wordmark and its headings,
+   * which the drawing paints in `DEFAULT` and which go flat against the hero
+   * artwork behind them.
+   *
+   * It equals `accent.DEFAULT` by value and is still its own token on purpose:
+   * it names *which text* is branded, so retuning the cyan used for links and
+   * hairlines never silently recolours a heading.
+   */
+  ink: {
+    DEFAULT: '#F1F5F9',
+    muted: '#94A3B8',
+    subtle: '#CBD5E1',
+    brand: '#22D3EE',
+  },
   accent: {
     DEFAULT: '#22D3EE',
     glow: '#1FC3FF',
@@ -42,10 +66,10 @@ module.exports = {
     extend: {
       colors,
       fontFamily: {
-        inter: ['Inter_400Regular'],
-        'inter-medium': ['Inter_500Medium'],
-        'inter-semibold': ['Inter_600SemiBold'],
-        'inter-bold': ['Inter_700Bold'],
+        body: ['Manrope_400Regular'],
+        'body-medium': ['Manrope_500Medium'],
+        'body-semibold': ['Manrope_600SemiBold'],
+        'body-bold': ['Manrope_700Bold'],
       },
       fontSize: {
         // Auth reference sizes, straight off design/auth_screen_design.png.

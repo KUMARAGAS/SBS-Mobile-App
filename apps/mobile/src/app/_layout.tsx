@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
+import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -11,7 +11,7 @@ import { canvas } from '@/theme/tokens';
 
 import '../../global.css';
 
-// Hold the native splash until Inter is ready, so no screen ever paints in a
+// Hold the native splash until Manrope is ready, so no screen ever paints in a
 // fallback face (React Native cannot synthesise weights for a custom family —
 // see tailwind.config.js).
 SplashScreen.preventAutoHideAsync();
@@ -55,10 +55,10 @@ export default function RootLayout() {
   // splash and the first screen, so an ignored failure here meant a splash that
   // never hid: a blank app with nothing in the dev-server log to explain it.
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    Manrope_400Regular,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
   });
 
   // A rejected load never resolves, so waiting on `fontsLoaded` would wait
@@ -67,7 +67,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontError) {
-      console.error('[RootLayout] Inter failed to load — see the error below.', fontError);
+      console.error('[RootLayout] Manrope failed to load — see the error below.', fontError);
     }
   }, [fontError]);
 
@@ -131,10 +131,10 @@ function FontLoadFailedScreen({ reason }: { reason: Error }) {
       }}
     >
       <Text style={{ color: '#F1F5F9', fontSize: 18, fontWeight: '600' }}>
-        Inter failed to load
+        Manrope failed to load
       </Text>
       <Text style={{ color: '#94A3B8', fontSize: 14, textAlign: 'center' }}>
-        Every string in the app names an Inter weight, so nothing can render
+        Every string in the app names a Manrope weight, so nothing can render
         without these files.
       </Text>
       <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center' }}>

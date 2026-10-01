@@ -33,11 +33,37 @@ export const focus = {
   glow: '#22D3EE',
 } as const;
 
+/**
+ * The same cyan at 55% — the focused field's `boxShadow` colour.
+ *
+ * Companion to `focus.glow` for the same reason as `brandBloomGlow`: the glow
+ * only painted on web while it was a `shadow*` prop, because the field's own
+ * fill is translucent and the `TextInput` inside it casts nothing.
+ */
+export const focusGlow = 'rgba(34, 211, 238, 0.55)';
+
 /** Light periwinkle used by field icons and placeholder text. */
 export const fieldForeground = '#9DB6E8';
 
 /** Soft bloom painted over the artwork behind the brand mark. */
 export const brandBloom = '#38BDF8';
+
+/**
+ * `brandBloom` at 45% — the same glow, spelled as a `boxShadow` colour.
+ *
+ * `boxShadow` carries its opacity inside the colour (there is no separate
+ * opacity field), so the alpha has to be baked into a token.
+ *
+ * This replaces the `shadowColor` + `shadowOpacity: 0.45` pair, and that pair
+ * was not merely deprecated — it could not paint this bloom on a device at all.
+ * The element it lights is an empty `View` with a transparent background: iOS
+ * derives a layer shadow from the layer's alpha, so there was nothing to cast,
+ * and Android needs `elevation`, which was never set. Only web showed it,
+ * because `react-native-web` converts any `shadow*` style to `boxShadow`
+ * uncritically. `boxShadow` paints around the border box regardless of content,
+ * on web, iOS and Android 9+ (RN 0.86, New Architecture).
+ */
+export const brandBloomGlow = 'rgba(56, 189, 248, 0.45)';
 
 /**
  * Backdrop scrim — the dark wash the reference lays over the hero artwork.

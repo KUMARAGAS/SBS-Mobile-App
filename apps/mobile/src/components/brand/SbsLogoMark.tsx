@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
 import { brandAssets } from '@/theme/assets';
-import { brandBloom } from '@/theme/tokens';
+import { brandBloomGlow } from '@/theme/tokens';
 
 /**
  * The SBS orbit lockup (`design/logo.png`) with the cyan bloom the brand paints
@@ -32,10 +32,13 @@ const styles = StyleSheet.create({
     width: 300,
     borderRadius: 150,
     backgroundColor: 'transparent',
-    shadowColor: brandBloom,
-    shadowOpacity: 0.45,
-    shadowRadius: 70,
-    shadowOffset: { width: 0, height: 0 },
+    /*
+     * `boxShadow`, not the `shadow*` quartet: react-native-web 0.21 emits
+     * `"shadow*" style props are deprecated. Use "boxShadow".` for the latter
+     * (and strips the props after converting them), and on device they could
+     * not draw this at all — see `brandBloomGlow`.
+     */
+    boxShadow: `0px 0px 70px 0px ${brandBloomGlow}`,
   },
 });
 
