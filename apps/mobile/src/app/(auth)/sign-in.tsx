@@ -47,21 +47,14 @@ type PendingControl = HostedAuthMode | 'google' | 'apple';
  *      of the drawing's 800 dp, and one more pill plus its gap would put it at
  *      823. The screen scrolls, so nothing clips — the mock's composition simply
  *      stops being exact, which is the price of answering "how do I register?".
- *   4. **Brand-tinted text.** The drawing sets every string in the palette's
- *      white (`ink.DEFAULT`), which is the flattest thing on a screen whose
- *      backdrop is a bright globe under a scrim — the same complaint that made
- *      `AuthBackdrop` necessary. The wordmark and the section heading carry
- *      `text-ink-brand` (the brand cyan) and the two supporting brand lines the
- *      periwinkle `text-accent-tagline`. It is a legibility trade, not a free
- *      win: white scored 8.9:1 over the artwork behind `SBS` where the cyan
- *      scores 5.4:1 (10.6:1 against flat `canvas.deep`), so the top of the screen
- *      is AA rather than AAA now. Cyan is worth that at 42 dp and 26 dp — both
- *      clear the 3:1 large-text bar by more than 1.7x — and lower down, where the
- *      scrim is at full strength, the cyan measures 7.9:1 and reads as AAA. It
- *      stops there: the tertiary helper keeps `text-ink-muted` so it stays behind
- *      the line it explains, and every control label (`Sign In`, `Continue
- *      with…`, the field's own text) stays white because those sit on a fill, not
- *      on the artwork, where white is the legible choice.
+  *   4. **Neutral text.** The drawing sets every string in the palette's white
+  *      (`ink.DEFAULT`), and the screen keeps that over the scrimmed artwork
+  *      (~15:1, AAA). The SBS wordmark is letterspaced (`tracking-[6px]`) for a
+  *      wide display cut; tagline and helpers step back to `ink-muted` /
+  *      `ink-subtle`. Cyan is reserved for focus, links and control states —
+  *      not body copy. Every control label (`Sign In`, `Continue with`, the
+  *      field's own text) stays white because those sit on a fill, not on the
+  *      artwork, where white is the legible choice.
  *
  * Both halves of the screen are live against the Clerk instance the app is linked
  * to. `Sign In` and `Create an account` open hosted Account Portal in a browser
@@ -196,23 +189,23 @@ export default function SignInScreen() {
           {/* Brand lockup */}
           <View className="items-center pt-[77px]">
             <SbsLogoMark />
-            <AppText weight="bold" className="mt-1 text-display text-ink-brand">
+            <AppText weight="bold" className="mt-1 text-display tracking-[6px] text-ink">
               SBS
             </AppText>
-            <AppText weight="semibold" className="text-heading text-ink-brand">
+            <AppText weight="medium" className="text-heading tracking-[0.5px] text-accent-tagline">
               Field Service
             </AppText>
-            <AppText className="mt-2 text-center text-tagline text-accent-tagline">
+            <AppText weight="medium" className="mt-2 text-center text-tagline text-ink-muted">
               Powering Sri Lanka’s{'\n'}Infrastructure
             </AppText>
           </View>
 
           {/* Credentials — identifier only; there is no password to collect. */}
           <View className="mt-9">
-            <AppText weight="semibold" className="text-center text-heading text-ink-brand">
+            <AppText weight="bold" className="text-center text-heading text-ink">
               Welcome Back
             </AppText>
-            <AppText className="mt-2 text-center text-label text-accent-tagline">
+            <AppText weight="regular" className="mt-2 text-center text-label text-ink-muted">
               Sign in to your account
             </AppText>
           </View>
@@ -232,7 +225,7 @@ export default function SignInScreen() {
              * lost but which identifier to type — the account binds to the Clerk
              * invitation token, not to whichever address the user picks.
              */}
-            <AppText className="mt-3 text-center text-caption text-ink-muted">
+            <AppText className="mt-3 text-center text-caption text-ink-subtle">
               Use the email or phone from your invite.
             </AppText>
           </View>
@@ -300,9 +293,9 @@ export default function SignInScreen() {
             accessibilityState={{ disabled: busy }}
             className={`mt-3 items-center${busy ? ' opacity-60' : ''}`}
           >
-            <AppText className="text-center text-caption text-ink-muted">
+            <AppText className="text-center text-caption text-ink-subtle">
               New to SBS?{' '}
-              <AppText weight="semibold" className="text-accent">
+              <AppText weight="semibold" className="text-ink underline">
                 {pending === 'sign-up' ? 'Opening Clerk…' : 'Create an account'}
               </AppText>
             </AppText>
@@ -317,7 +310,7 @@ export default function SignInScreen() {
            * and left it ~45 dp below the mock's composition once the artwork had
            * a size to fill.
            */}
-          <AppText weight="medium" className="mt-3 text-center text-caption text-accent">
+          <AppText weight="semibold" className="mt-3 text-center text-caption text-ink-subtle">
             Access by invitation only
           </AppText>
         </SafeAreaView>
