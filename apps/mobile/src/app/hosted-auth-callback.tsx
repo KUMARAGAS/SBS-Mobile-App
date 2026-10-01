@@ -1,6 +1,6 @@
-import { useAuth } from '@clerk/expo';
-import { AuthenticateWithRedirectCallback } from '@clerk/react';
+import { useAuth, useClerk } from '@clerk/expo';
 import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { canvas } from '@/theme/tokens';
@@ -21,12 +21,21 @@ import { canvas } from '@/theme/tokens';
  * redirect privately and `startHostedAuth` activates the session with
  * `clerk.setActive()` itself.
  *
- * Implementation mirrors `sso-callback.tsx`: the handshake activating the
- * session is asynchronous, so `Redirect` to `/home` is gated on `isSignedIn`
- * flipping rather than on the callback component (which renders null).
+ * Like `sso-callback.tsx`, the handshake runs through `useClerk()` from
+ * `@clerk/expo` — never `AuthenticateWithRedirectCallback` from
+ * `@clerk/react`, whose separate React context cannot see this app's
+ * provider. `Redirect` to `/home` is gated on `isSignedIn` flipping.
  */
 export default function HostedAuthCallbackScreen() {
+  const clerk = useClerk();
   const { isLoaded, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    void clerk.handleRedirectCallback({
+      signInForceRedirectUrl: '/home',
+      signUpForceRedirectUrl: '/home',
+    });
+  }, [clerk]);
 
   if (isLoaded && isSignedIn) {
     return <Redirect href="/home" />;
@@ -34,7 +43,6 @@ export default function HostedAuthCallbackScreen() {
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: canvas.deep }}>
-      <AuthenticateWithRedirectCallback signInForceRedirectUrl="/home" signUpForceRedirectUrl="/home" />
       <ActivityIndicator size="large" color="#F1F5F9" />
     </View>
   );

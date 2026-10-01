@@ -1,6 +1,6 @@
-import { useAuth } from '@clerk/expo';
-import { AuthenticateWithRedirectCallback } from '@clerk/react';
+import { useAuth, useClerk } from '@clerk/expo';
 import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { canvas } from '@/theme/tokens';
@@ -17,18 +17,25 @@ import { canvas } from '@/theme/tokens';
  * privately and hands `authSessionResult.url` back to `sign-in.tsx`, which
  * activates the session with `setActive()` itself.
  *
- * Why `@clerk/react`, not `@clerk/expo`: the installed `@clerk/expo@4.7.1`
- * bundle exports no callback component (`controlComponents` re-exports only
- * `ClerkLoaded/ClerkLoading/RedirectToTasks/Show`; `web/uiComponents` only
- * the prebuilt UI set). Its own dependency is `@clerk/react ^6.17.2`
- * (hoisted alongside it), whose `AuthenticateWithRedirectCallback` calls
- * `clerk.handleRedirectCallback()` on mount — the same instance the
- * `ClerkProvider` in `_layout.tsx` owns. `useAuth` still comes from
- * `@clerk/expo`, like every other screen. The component renders null (no
- * DOM), so it is safe on `react-native-web`.
+ * Why `useClerk().handleRedirectCallback()` and not
+ * `AuthenticateWithRedirectCallback` from `@clerk/react`: the app's provider
+ * is `@clerk/expo`'s `ClerkProvider`, which renders `InternalClerkProvider`
+ * from `@clerk/react/internal`. Under Metro those are two separate module
+ * instances with two separate React contexts, so the component's internal
+ * `withClerk` never sees the provider and throws "can only be used within
+ * the <ClerkProvider /> component". `useClerk` from `@clerk/expo` reads the
+ * same context the provider wrote, so the mismatch cannot recur.
  */
 export default function SSOCallbackScreen() {
+  const clerk = useClerk();
   const { isLoaded, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    void clerk.handleRedirectCallback({
+      signInForceRedirectUrl: '/home',
+      signUpForceRedirectUrl: '/home',
+    });
+  }, [clerk]);
 
   // The handshake activates the session asynchronously; the moment it flips,
   // leave — the `(app)` guard owns everything past this point. The `isLoaded`
@@ -39,7 +46,6 @@ export default function SSOCallbackScreen() {
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: canvas.deep }}>
-      <AuthenticateWithRedirectCallback signInForceRedirectUrl="/home" signUpForceRedirectUrl="/home" />
       <ActivityIndicator size="large" color="#F1F5F9" />
     </View>
   );
