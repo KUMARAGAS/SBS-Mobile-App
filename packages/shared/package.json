@@ -9,7 +9,11 @@
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
   },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
     "@sbs/config": "*"
   }
 }
+

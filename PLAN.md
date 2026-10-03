@@ -1113,7 +1113,51 @@ for design choices but **cannot** supply facts about the business. Each is label
 
 ## Part B — Implementation Plan
 
-**Status: NOT YET WRITTEN.** Blocked on §17 (blocking open questions) and §16 (fact confirmations).
-This section will contain the phased build plan, milestone sequencing, task breakdown, and the
-agreed definition of done — once the interview closes per §19.
+**Status: IN PROGRESS (02 Oct 2026).** Agreed approach: finish one-by-one, vertical slice, done-done only.
+A feature counts as finished ONLY when UI + API + validation + DB + manual test on device works.
+Schemas / folders / in-memory stubs do NOT count. Tracker: `finishFeatures.md` at repo root.
 
+### Finish order (one by one)
+
+**F1 — Auth + My Jobs read (J1 + J3 step 1) — CURRENT**
+- API: `GET /v1/employees/me`, `GET /v1/tickets/mine` with real DB (replace in-memory `application/tickets.ts`)
+- Mobile: sign-in stays signed in (tokenCache), `home.tsx` list from real API, loading/error/empty states
+- Shared: `employee.ts`, `ticket.ts` already defined — freeze, no breaking change
+- Needs: C5 DB choice (recommend Drizzle 0.45.3 per D2), C6 Clerk confirm, `DATABASE_URL` + Clerk keys
+- Done when: technician signs in on device, sees assigned tickets from DB, pull-to-refresh works offline-from-cache
+
+**F2 — Visit lifecycle (J3 steps 2-3-7)**
+- API: `POST /v1/visits/check-in` → complete, `travel_started_at / arrived_at / ended_at`, GPS at tap, `idempotency_key` unique
+- Mobile: Start travel / Arrived / Complete buttons on job detail, device timestamp at tap (R3)
+- Done when: full travel → on-site → complete loop syncs, replay with same key returns same visit, different payload → 409
+
+**F3 — Customers / Sites / Assets registry (§7)**
+- Schemas + CRUD for customers, sites, installed assets (model, brand, serial, install date, engineer, remarks) + photos
+- Mobile: asset view per job; Admin: create/edit
+- Done when: coordinator creates customer/site/asset, technician sees it on job
+
+**F4 — History + Entitlement display (J5 + J4)**
+- Own visits filterable (date, customer, type, status), asset/service timeline with photos
+- Show free-visits remaining / contract type / expiry (read-only first)
+- Done when: technician filters own history, sees entitlement line on visit
+
+**F5 — Admin dispatch + users/offices (J2 + J6)**
+- `apps/admin`: login, ticket create/assign, user + office list, cross-office attendance view
+- Done when: coordinator creates + assigns ticket on web, technician receives it on phone
+
+**F6 — Hardening (one by one after F1–F5 stable)**
+- F6a Warranty/AMC maths (`entitlements.ts`), visits-due + expiring-soon lists
+- F6b Offline outbox (persisted queue + replay + short-TTL cache, D16/R24)
+- F6c Push (device_tokens + assignment/approval/SLA pushes)
+- F6d Reports 1/2/3/6 + CSV + audit_log
+- F6e Sentry + health alerting + i18n framework + photo compression (D9/D10)
+
+### Sequencing rationale
+F1 unblocks everything (no login + real list = nothing testable). F2 is the core money loop (attendance = payroll input). F3–F4 make jobs meaningful (what/where + was it free?). F5 gives the office its intake tool. F6 hardens. Alternative considered (assets first) rejected: technician with assets but no jobs has zero daily use.
+
+### Definition of done (per feature)
+1. Shared Zod schema frozen + inferred types only
+2. API route + validation + service + DB migration (no in-memory)
+3. Mobile and/or Admin UI wired via RTK Query (no ad-hoc fetch)
+4. `npm run typecheck` + `npm run lint` clean
+5. Manual test on device/emulator + API via curl, proof noted in `finishFeatures.md` with commit hash

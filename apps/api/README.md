@@ -1,7 +1,22 @@
 # @sbs/api — Express service
 
 Node.js 22 LTS + **Express 5** + TypeScript (strict), REST under `/v1`, Zod-validated (PLAN.md D1/D3/D17).
-**Status: folder structure only** — no source files yet, no dependencies installed.
+**Status: F1 in progress (02 Oct 2026).** Bootstrap + auth middleware + `employees`/`tickets`/`visits`
+routers exist; `GET /v1/employees/me` + `GET /v1/tickets/mine` are DB-backed (Drizzle + Neon, C5 resolved).
+`visits/check-in` is still in-memory until F2. See `finishFeatures.md`.
+
+## Database (C5 resolved: Drizzle ORM + Neon, D2)
+
+```bash
+cp .env.example .env          # set DATABASE_URL (fetch from Neon dashboard)
+npm run db:generate           # new migration from src/infrastructure/schema.ts
+npm run db:push               # apply to Neon (dev)
+npm run db:seed               # dev data: Dev Technician + 2 tickets
+SBS_AUTH_DISABLED=1 npm run dev:api   # local dev without Clerk keys
+```
+
+Env vars: `DATABASE_URL` (required), `CLERK_SECRET_KEY` + `SBS_CORS_ORIGINS` (prod auth),
+`SBS_AUTH_DISABLED=1` (dev-only stub identity `dev-user`; refuses to run in production — R27).
 
 ## Layer structure (§8.5 — client-specified 4 layers)
 

@@ -1,20 +1,49 @@
-import { ClerkProvider } from '@clerk/expo';
+import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Text, View } from 'react-native';
+import { Provider as ReduxProvider } from 'react-redux';
 
 import { canvas } from '@/theme/tokens';
+import { configureApiContext } from '@/store/api';
+import { createStore } from '@/store/store';
 
 import '../../global.css';
 
 // Hold the native splash until Manrope is ready, so no screen ever paints in a
-// fallback face (React Native cannot synthesise weights for a custom family —
+// fallback face (React Native cannot synthesise weights for a custom family -
 // see tailwind.config.js).
 SplashScreen.preventAutoHideAsync();
+
+/**
+ * Redux provider + RTK Query token wiring.
+ *
+ * Store is created once per app lifetime (`useMemo`). Clerk token injection
+ * happens here rather than in `store/api.ts` so the API slice never imports
+ * `@clerk/expo` directly - one seam, easy to mock in tests. Hooks
+ * (`useAuth().getToken`) cannot run outside `ClerkProvider`, so this sits one
+ * level inside it - not beside it.
+ */
+function StoreProvider({ children }: { children: React.ReactNode }) {
+  const store = useMemo(() => createStore(), []);
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    configureApiContext({
+      baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000',
+      // Fresh token per request - never captured, so refreshes never go stale.
+      // Unsigned cold start sends no header; dev API covers that window with
+      // SBS_AUTH_DISABLED=1, prod API answers 401 (R23 shape, not a leak).
+      getToken,
+    });
+  }, [getToken]);
+
+  return <ReduxProvider store={store}>{children}</ReduxProvider>;
+}
 
 /**
  * Clerk publishable key, handed to the provider explicitly.
@@ -24,8 +53,8 @@ SplashScreen.preventAutoHideAsync();
  * time*: a `process.env` read that happens inside `node_modules` is never
  * replaced in a release bundle and would come back empty on device.
  *
- * The prefix is also what makes the key public — it is the same value a browser
- * would show — so shipping it is intended. Its counterpart, `CLERK_SECRET_KEY`,
+ * The prefix is also what makes the key public - it is the same value a browser
+ * would show - so shipping it is intended. Its counterpart, `CLERK_SECRET_KEY`,
  * belongs to `apps/api` alone and must never reach this package.
  */
 const publishableKey = readPublishableKey(process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY);
@@ -33,8 +62,8 @@ const publishableKey = readPublishableKey(process.env.EXPO_PUBLIC_CLERK_PUBLISHA
 /**
  * Throws instead of rendering an apology, unlike the font failure below.
  *
- * There is no partial app to fall back to without an identity provider — every
- * route behind `(auth)`/`(app)` is gated on a session that cannot exist — and a
+ * There is no partial app to fall back to without an identity provider - every
+ * route behind `(auth)`/`(app)` is gated on a session that cannot exist - and a
  * failure at import time names the fix in the one place a developer looks,
  * rather than leaving a sign-in screen whose every control is dead.
  */
@@ -45,7 +74,7 @@ function readPublishableKey(key: string | undefined): string {
 
   throw new Error(
     'EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not set. Add it to apps/mobile/.env ' +
-      '(Clerk Dashboard → API keys → Quick Copy), or run `clerk env pull` from this directory.',
+      '(Clerk Dashboard -> API keys -> Quick Copy), or run `clerk env pull` from this directory.',
   );
 }
 
@@ -62,12 +91,12 @@ export default function RootLayout() {
   });
 
   // A rejected load never resolves, so waiting on `fontsLoaded` would wait
-  // forever — release the splash and render the reason instead.
+  // forever - release the splash and render the reason instead.
   const fontsFailed = fontError != null;
 
   useEffect(() => {
     if (fontError) {
-      console.error('[RootLayout] Manrope failed to load — see the error below.', fontError);
+      console.error('[RootLayout] Manrope failed to load - see the error below.', fontError);
     }
   }, [fontError]);
 
@@ -100,12 +129,14 @@ export default function RootLayout() {
      */
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: canvas.deep },
-        }}
-      />
+      <StoreProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: canvas.deep },
+          }}
+        />
+      </StoreProvider>
     </ClerkProvider>
   );
 }
@@ -116,7 +147,7 @@ export default function RootLayout() {
  * Styled with inline `style` rather than NativeWind on purpose: this path only
  * runs when something upstream already went wrong, so it must not depend on the
  * CSS interop layer that the rest of the app relies on. It exists so a startup
- * failure is *visible* — a silent blank screen gives nothing to act on.
+ * failure is *visible* - a silent blank screen gives nothing to act on.
  */
 function FontLoadFailedScreen({ reason }: { reason: Error }) {
   return (
@@ -143,4 +174,3 @@ function FontLoadFailedScreen({ reason }: { reason: Error }) {
     </View>
   );
 }
-

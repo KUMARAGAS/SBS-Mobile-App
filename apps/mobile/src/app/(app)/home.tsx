@@ -1,161 +1,180 @@
-import { useClerk, useUser } from '@clerk/expo';
-import { Image } from 'expo-image';
-import { LogOut, Mail, ShieldCheck, type LucideIcon } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { AuthBackdrop } from '@/components/brand/AuthBackdrop';
 import { AppText } from '@/components/ui/AppText';
-import { OutlineButton } from '@/components/ui/OutlineButton';
-import { fieldForeground } from '@/theme/tokens';
-
-/** Edge of the avatar well; also the mark size inside "Sign out". */
-const AVATAR_SIZE = 88;
-const ACTION_MARK_SIZE = 26;
+import { useMyTicketsQuery } from '@/store/api';
+import type { TicketStatus } from '@sbs/shared';
+import { Briefcase, ChevronRight, MapPin, TriangleAlert } from 'lucide-react-native';
+import { useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 /**
- * The signed-in landing screen, and the app's "who am I" control.
+ * My Jobs - the technician's own queue (PLAN.md J3 step 1, section 8.5 `/home`).
  *
- * Clerk's own equivalent on a development build is the native `<UserButton />`
- * (an avatar that opens a SwiftUI/Compose profile sheet). That component renders
- * on neither web nor in Expo Go, and this app targets web as well as device —
- * `app.json` sets `web.output: static` and the UI loop captures screens through
- * it — so the avatar, the identity block and the sign-out control are built from
- * the design system instead. That keeps the first test user recognisable on
- * every platform this app builds for.
- *
- * It also stands where `PLAN.md` §8.5 puts my-jobs: `/home` is the guarded
- * group's landing route, so it is the honest place to say what has and has not
- * been built yet rather than implying the crew's job board is behind it.
+ * Reads through RTK Query (`myTickets`), so it works from cache offline and
+ * refetches on reconnect/focus (R24). Status filter is local state - the
+ * query key includes it, so switching tabs refires against the cache first.
  */
+const FILTERS = ['all', 'assigned', 'accepted', 'travelling', 'on_site', 'completed'] as const;
+type Filter = (typeof FILTERS)[number];
+
+const STATUS_DOT: Record<TicketStatus, string> = {
+  new: '#94A3B8',
+  assigned: '#60A5FA',
+  accepted: '#22D3EE',
+  travelling: '#F59E0B',
+  on_site: '#A78BFA',
+  completed: '#10B981',
+  approved: '#34D399',
+  closed: '#64748B',
+};
+
 export default function HomeScreen() {
-  const { isLoaded, user } = useUser();
-  const { signOut } = useClerk();
+  const [filter, setFilter] = useState<Filter>('all');
+  const { data, isLoading, isError, error, refetch, isFetching } = useMyTicketsQuery(
+    filter === 'all' ? undefined : { status: filter },
+  );
 
-  /*
-   * `(app)/_layout` has already settled that a session exists, but `user` is a
-   * separate resource that arrives a moment later. Blank rather than a skeleton:
-   * the alternative is a screen that paints its whole layout twice for one frame.
-   */
-  if (!isLoaded || !user) {
-    return <View className="flex-1 bg-canvas-1" />;
-  }
-
-  const email = user.primaryEmailAddress?.emailAddress;
-  const name = user.fullName ?? user.username ?? email ?? 'Signed in';
+  const tickets = data?.tickets ?? [];
 
   return (
     <View className="flex-1 bg-canvas-1">
       <AuthBackdrop />
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-        <View className="items-center pt-10">
-          <View
-            className="items-center justify-center overflow-hidden rounded-full border border-brand-sky/50 bg-brand-sky/[0.12]"
-            style={styles.avatarWell}
-          >
-            {/*
-             * `expo-image` is not registered with NativeWind's interop layer, so
-             * this one is sized with `style`: a `className` here is dropped on
-             * native and the avatar renders at 0x0 — the same trap `SbsLogoMark`
-             * documents.
-             */}
-            {user.imageUrl ? (
-              <Image
-                source={{ uri: user.imageUrl }}
-                style={styles.avatarImage}
-                contentFit="cover"
-                transition={0}
-                accessibilityLabel={name}
-              />
-            ) : (
-              <AppText weight="bold" className="text-heading text-ink">
-                {initialsOf(name)}
-              </AppText>
-            )}
-          </View>
+        <AppText weight="bold" className="text-heading text-ink">
+          My Jobs
+        </AppText>
+        <AppText className="mt-1 text-caption text-ink-muted">
+          {isFetching && !isLoading ? 'Syncing...' : `${tickets.length} job${tickets.length === 1 ? '' : 's'}`}
+        </AppText>
 
-          <AppText weight="bold" className="mt-5 text-center text-heading text-ink">
-            {name}
-          </AppText>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-4 max-h-[40px]"
+          contentContainerStyle={styles.filterRow}
+        >
+          {FILTERS.map((f) => {
+            const active = filter === f;
+            return (
+              <Pressable
+                key={f}
+                onPress={() => setFilter(f)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                className={`rounded-full border px-3 py-1.5 ${
+                  active ? 'border-brand-sky bg-brand-sky/20' : 'border-brand-sky/30 bg-white/[0.03]'
+                }`}
+              >
+                <AppText
+                  weight={active ? 'semibold' : 'regular'}
+                  className={`text-caption ${active ? 'text-ink' : 'text-ink-muted'}`}
+                >
+                  {f === 'all' ? 'All' : f.replace('_', ' ')}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
-          {email ? (
-            <AppText className="mt-1 text-center text-label text-ink-subtle">{email}</AppText>
-          ) : null}
+        <ScrollView
+          className="mt-4 flex-1"
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={() => void refetch()} tintColor="#F1F5F9" />
+          }
+        >
+          {isLoading ? (
+            <EmptyState icon={<Briefcase size={28} color="#9DB6E8" />} title="Loading jobs..." body="Pulling your queue from the office." />
+          ) : isError ? (
+            <EmptyState
+              icon={<TriangleAlert size={28} color="#EF4444" />}
+              title="Couldn't load jobs"
+              body={describeQueryError(error)}
+            />
+          ) : tickets.length === 0 ? (
+            <EmptyState
+              icon={<Briefcase size={28} color="#9DB6E8" />}
+              title="No jobs here"
+              body={
+                filter === 'all'
+                  ? 'Nothing assigned yet. New jobs from the coordinator land here.'
+                  : `Nothing ${filter.replace('_', ' ')} right now.`
+              }
+            />
+          ) : (
+            tickets.map((ticket) => (
+              <View
+                key={ticket.id}
+                className="rounded-2xl border border-brand-sky/30 bg-white/[0.03] px-4 py-3"
+              >
+                <View className="flex-row items-center gap-2">
+                  <View style={{ ...styles.dot, backgroundColor: STATUS_DOT[ticket.status] }} />
+                  <AppText weight="semibold" className="flex-1 text-label capitalize text-ink">
+                    {ticket.status.replace('_', ' ')}
+                  </AppText>
+                  <AppText className="text-caption uppercase text-ink-muted">{ticket.priority}</AppText>
+                </View>
 
-          <View className="mt-3 flex-row items-center gap-2 rounded-full border border-brand-sky/40 bg-brand-sky/[0.08] px-3 py-1">
-            <ShieldCheck size={14} color={fieldForeground} strokeWidth={2} />
-            <AppText className="text-caption text-ink-subtle">Signed in with Clerk</AppText>
-          </View>
-        </View>
+                <AppText weight="semibold" className="mt-2 text-label text-ink">
+                  {ticket.title}
+                </AppText>
 
-        <View className="mt-9 gap-3">
-          <DetailRow icon={Mail} label="Primary email" value={email ?? 'Not set'} />
-          <DetailRow icon={ShieldCheck} label="Clerk user id" value={user.id} />
-        </View>
+                {ticket.description ? (
+                  <AppText className="mt-1 text-caption text-ink-muted" numberOfLines={2}>
+                    {ticket.description}
+                  </AppText>
+                ) : null}
 
-        <View className="flex-1" />
-
-        <OutlineButton
-          label="Sign out"
-          icon={<LogOut size={ACTION_MARK_SIZE} color="#FFFFFF" strokeWidth={2} />}
-          onPress={() => {
-            // The guard on `(app)/_layout` walks to `/sign-in` once the session
-            // clears, so this deliberately navigates nothing itself.
-            void signOut();
-          }}
-        />
+                <View className="mt-2 flex-row items-center gap-4">
+                  {ticket.officeCode ? (
+                    <View className="flex-row items-center gap-1">
+                      <MapPin size={13} color="#9DB6E8" />
+                      <AppText className="text-caption text-ink-subtle">{ticket.officeCode}</AppText>
+                    </View>
+                  ) : null}
+                  <AppText className="text-caption text-ink-subtle">{ticket.complaintType.replace(/_/g, ' ')}</AppText>
+                  <View className="flex-1" />
+                  <ChevronRight size={16} color="#9DB6E8" />
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
 
         <AppText className="mt-4 text-center text-caption text-ink-muted">
-          My Jobs, visit sessions and history land here (`PLAN.md` §8.5).
+          Visit check-in lands here next (PLAN.md J3 steps 2-3).
         </AppText>
       </SafeAreaView>
     </View>
   );
 }
 
-/**
- * Gutters and the bottom inset live in `style` rather than `className`, matching
- * the sign-in screen: `scripts/ui-loop/capture.mjs` measured `SafeAreaView`'s
- * `px-*`/`pb-*` as never applied on web (every child came out flush to x 0), so
- * the 32 dp gutter is stated in plain React Native terms and lands identically
- * on both platforms.
- */
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, paddingHorizontal: 32, paddingBottom: 28 },
-  avatarWell: { width: AVATAR_SIZE, height: AVATAR_SIZE },
-  avatarImage: { width: '100%', height: '100%' },
-});
-
-/** Up to two initials, for the account that has no profile picture yet. */
-function initialsOf(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-
-  if (words.length === 0) {
-    return '?';
-  }
-
-  const letters = words.length === 1 ? words[0].slice(0, 2) : `${words[0][0]}${words[1][0]}`;
-
-  return letters.toUpperCase();
-}
-
-/** One label/value row of the account card. */
-function DetailRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+function EmptyState({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl border border-brand-sky/30 bg-white/[0.03] px-4 py-3">
-      <Icon size={18} color={fieldForeground} strokeWidth={1.7} />
-      <View className="flex-1">
-        <AppText className="text-caption text-ink-muted">{label}</AppText>
-        <AppText
-          weight="medium"
-          className="text-label text-ink"
-          numberOfLines={1}
-          ellipsizeMode="middle"
-        >
-          {value}
-        </AppText>
-      </View>
+    <View className="items-center gap-2 rounded-2xl border border-brand-sky/30 bg-white/[0.03] px-6 py-10">
+      {icon}
+      <AppText weight="semibold" className="mt-2 text-center text-label text-ink">
+        {title}
+      </AppText>
+      <AppText className="text-center text-caption text-ink-muted">{body}</AppText>
     </View>
   );
 }
+
+function describeQueryError(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'data' in error) {
+    const payload = (error as { data?: { message?: unknown } }).data;
+    if (payload && typeof payload.message === 'string' && payload.message.length > 0) {
+      return payload.message;
+    }
+  }
+  return 'Check your connection - cached jobs stay visible while offline.';
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, paddingHorizontal: 20, paddingBottom: 24, paddingTop: 12 },
+  filterRow: { gap: 8, paddingRight: 8, alignItems: 'center' },
+  list: { gap: 10, paddingBottom: 12 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+});
