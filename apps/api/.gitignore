@@ -1,0 +1,44 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo / Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# generated native folders (CNG — never hand-edit these)
+ios/
+android/
+.kotlin/
+
+# env files (keep .env.example committed)
+.env
+.env*.local
+
+# builds & caches
+*.tsbuildinfo
+*.orig.*
+
+# signing material
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# generated ORM client (PLAN.md §8.5 gap table: src/generated/prisma in apps/api)
+src/generated/
+
