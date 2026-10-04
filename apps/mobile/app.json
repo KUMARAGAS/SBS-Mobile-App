@@ -31,9 +31,14 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#040B1A",
+          "image": "./assets/images/sbs-logo.png",
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#040B1A",
+            "image": "./assets/images/sbs-logo.png",
+            "imageWidth": 200
+          }
         }
       ],
       "expo-secure-store",

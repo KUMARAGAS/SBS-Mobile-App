@@ -1,3 +1,4 @@
+import { useSSO } from "@clerk/expo";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -5,14 +6,13 @@ import {
   Poppins_700Bold,
   useFonts,
 } from "@expo-google-fonts/poppins";
-import { useSSO } from "@clerk/expo";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
-import { router } from "expo-router";
 import { requireOptionalNativeModule } from "expo-modules-core";
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
@@ -108,10 +108,11 @@ export default function Login() {
 
   const handleSSO = async (strategy: SSOProvider) => {
     if (pendingProvider) return;
-    // The SSO browser flow needs the ExpoCrypto native module (PKCE).
-    // A stale dev client or outdated Expo Go doesn't have it — say so
-    // instead of failing with an unreadable native error.
-    if (!requireOptionalNativeModule("ExpoCrypto")) {
+    // Native SSO needs the ExpoCrypto module (PKCE), so a stale dev client
+    // or outdated Expo Go gets a helpful message instead of a native crash.
+    // Web uses the expo-web-browser popup flow and has no native modules —
+    // guarding it the same way would block web sign-in entirely.
+    if (Platform.OS !== "web" && !requireOptionalNativeModule("ExpoCrypto")) {
       Alert.alert(
         "Update needed to sign in",
         "Your app build is missing the crypto module. Rebuild your dev client (npx expo run:android) or update Expo Go to the latest version, then try again."
@@ -128,6 +129,12 @@ export default function Login() {
       // No session + no error = user cancelled; stay on the login screen.
     } catch (err) {
       console.error("[SSO]", err instanceof Error ? err.message : JSON.stringify(err));
+      Alert.alert(
+        "Sign in failed",
+        Platform.OS === "web"
+          ? "The sign-in window may have been blocked. Allow popups for this site and try again."
+          : "Something went wrong signing you in. Please try again."
+      );
     } finally {
       setPendingProvider(null);
     }
@@ -210,13 +217,13 @@ export default function Login() {
             </Text>
             <View className="w-full" style={{ marginTop: 20, gap: 12 }}>
               <SocialButton
-                label="Continue with Google"
+                label={pendingProvider === "oauth_google" ? "Connecting…" : "Continue with Google"}
                 icon={<GoogleIcon size={20} />}
                 onPress={() => handleSSO("oauth_google")}
                 disabled={pendingProvider !== null}
               />
               <SocialButton
-                label="Continue with Apple"
+                label={pendingProvider === "oauth_apple" ? "Connecting…" : "Continue with Apple"}
                 icon={<AppleIcon size={22} />}
                 onPress={() => handleSSO("oauth_apple")}
                 disabled={pendingProvider !== null}
@@ -225,7 +232,7 @@ export default function Login() {
           </View>
 
           {/* 3 — Footer: glued under the buttons, no void below */}
-          <View style={{ marginTop: 22, paddingBottom: 14, alignItems: "center" }}>
+          <View style={{ marginTop: 22, paddingBottom: 14, alignItems: "center", gap: 10 }}>
             <Text
               style={{
                 color: ACCENT,
@@ -239,6 +246,7 @@ export default function Login() {
             >
               Access by invitation only
             </Text>
+           
           </View>
         </View>
       </SafeAreaView>
