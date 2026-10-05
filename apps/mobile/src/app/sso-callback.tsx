@@ -1,11 +1,12 @@
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, Text, View } from "react-native";
+import { View } from "react-native";
+import SbsLoader from "../components/SbsLoader";
 
 // OAuth redirect landing page. `useSSO()` defaults its redirect to the
 // `sso-callback` path: after Google/Apple auth the OS hands
 // `mobileapp://sso-callback` back to the app, `startSSOFlow` resolves, and the
-// login screen replaces this route with onboarding. This branded interstitial
+// login screen replaces this route with onboarding. The SBS loader tile
 // covers the brief handoff — it is seen on every social sign-in.
 export default function SSOCallback() {
   return (
@@ -26,18 +27,7 @@ export default function SSOCallback() {
           backgroundColor: "rgba(4,11,26,0.6)",
         }}
       />
-      <Image
-        source={require("../../assets/images/sbs-logo.png")}
-        style={{ width: 180, height: 78 }}
-        contentFit="contain"
-      />
-      <ActivityIndicator size="large" color="#38BDF8" style={{ marginTop: 28 }} />
-      <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "600", marginTop: 16 }}>
-        Signingin…
-      </Text>
-      <Text style={{ color: "#9DB6D8", fontSize: 13, marginTop: 6 }}>
-        Securing your session
-      </Text>
+      <SbsLoader size={190} title="Completing sign in…" subtitle="Securing your session" />
     </View>
   );
 }

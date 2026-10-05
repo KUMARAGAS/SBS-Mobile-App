@@ -7,11 +7,14 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mobileapp",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#000814",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.amilasavinda20.Mobileapp"
+      "bundleIdentifier": "com.amilasavinda20.Mobileapp",
+      "backgroundColor": "#000814"
     },
     "android": {
+      "backgroundColor": "#000814",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -24,18 +27,24 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#000814",
+      "splash": {
+        "backgroundColor": "#000814",
+        "image": "./assets/images/sbs-logo.png",
+        "resizeMode": "contain"
+      }
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#040B1A",
+          "backgroundColor": "#000814",
           "image": "./assets/images/sbs-logo.png",
           "imageWidth": 200,
           "dark": {
-            "backgroundColor": "#040B1A",
+            "backgroundColor": "#000814",
             "image": "./assets/images/sbs-logo.png",
             "imageWidth": 200
           }

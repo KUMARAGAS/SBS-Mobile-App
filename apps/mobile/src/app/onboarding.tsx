@@ -52,7 +52,7 @@ export type OnboardingProfile = {
 };
 
 const DEFAULT_PROFILE: OnboardingProfile = {
-  fullName: "Amila Sanjivda",
+  fullName: "Amila Savinda",
   designation: DESIGNATIONS[0],
   branch: BRANCHES[0],
   phone: "+94 77 712 3457",

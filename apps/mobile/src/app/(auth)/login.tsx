@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import SbsLoader from "../../components/SbsLoader";
 
 const INK = "#FFFFFF";
 const SUBTITLE = "#9DB6D8";
@@ -140,7 +141,14 @@ export default function Login() {
     }
   };
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#040B1A]">
+        <StatusBar style="light" />
+        <SbsLoader size={190} title="Loading…" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-[#040B1A]">
@@ -250,6 +258,28 @@ export default function Login() {
           </View>
         </View>
       </SafeAreaView>
+      {/* SSO handoff: replace the login screen with the SBS loader while the
+          browser flow / session activation resolves. */}
+      {pendingProvider !== null && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(4, 11, 26, 0.92)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <SbsLoader
+            size={190}
+            title="Completing sign in…"
+            subtitle="Securing your session"
+          />
+        </View>
+      )}
     </View>
   );
 }
