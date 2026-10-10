@@ -77,6 +77,7 @@ export default function AnimatedSplash({ onDone }: { onDone: () => void }) {
                   textAlign: "center",
                 }}
               >
+                
                 {error}
               </Text>
             ) : null}
